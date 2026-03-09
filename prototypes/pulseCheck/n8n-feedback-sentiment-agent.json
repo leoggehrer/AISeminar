@@ -1,0 +1,130 @@
+{
+  "name": "PulseCheck – Feedback Sentiment AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "feedback-ai",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "node_webhook",
+      "name": "Webhook – Eingang",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "notes": "Empfängt POST: { feedback: { id, author, category, text, rating }, timestamp }"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst fb = body.feedback;\n\nconst prompt = `Analysiere dieses Kundenfeedback und antworte NUR als JSON.\n\nFeedback:\n- Autor: ${fb.author}\n- Kategorie: ${fb.category}\n- Bewertung: ${fb.rating}/5 Sterne\n- Text: \"${fb.text}\"\n\nAntworte in exakt diesem JSON-Format (kein Markdown, kein Erklärungstext):\n{\n  \"sentiment\": \"positive\" | \"neutral\" | \"negative\",\n  \"keywords\": [\"max. 5 relevante Schlüsselwörter auf Deutsch\"],\n  \"summary\": \"Eine Satz Zusammenfassung auf Deutsch (max. 15 Wörter)\"\n}\n\nSentiment-Regeln:\n- positive: Bewertung 4-5 UND überwiegend positiver Ton\n- negative: Bewertung 1-2 ODER starke Kritik/Frustration\n- neutral: Bewertung 3 oder gemischte Aussagen`;\n\nreturn [{ json: { prompt, feedbackId: fb.id } }];"
+      },
+      "id": "node_prepare",
+      "name": "Prompt aufbauen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [380, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Du bist ein präziser Sentiment-Analyse Assistent. Du antwortest IMMER nur mit validem JSON, ohne Markdown-Backticks oder Erklärungstext."
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.1,
+          "maxTokens": 300
+        }
+      },
+      "id": "node_openai",
+      "name": "GPT-4o-mini Analyse",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [560, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiText = $input.first().json.message?.content || '{}';\nconst feedbackId = $('Prompt aufbauen').first().json.feedbackId;\n\nlet parsed;\ntry {\n  const cleaned = aiText.replace(/```json\\n?/g,'').replace(/```/g,'').trim();\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = { sentiment: 'neutral', keywords: [], summary: 'Analyse fehlgeschlagen.' };\n}\n\n// Validierung\nconst validSentiments = ['positive', 'neutral', 'negative'];\nif (!validSentiments.includes(parsed.sentiment)) parsed.sentiment = 'neutral';\nif (!Array.isArray(parsed.keywords)) parsed.keywords = [];\nparsed.keywords = parsed.keywords.slice(0, 5); // max 5\n\nreturn [{ json: {\n  sentiment: parsed.sentiment,\n  keywords: parsed.keywords,\n  summary: parsed.summary || '',\n  feedbackId\n}}];"
+      },
+      "id": "node_parse",
+      "name": "Antwort validieren",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "node_response",
+      "name": "Response senden",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [920, 300]
+    }
+  ],
+  "connections": {
+    "Webhook – Eingang":    { "main": [[{ "node": "Prompt aufbauen",     "type": "main", "index": 0 }]] },
+    "Prompt aufbauen":      { "main": [[{ "node": "GPT-4o-mini Analyse", "type": "main", "index": 0 }]] },
+    "GPT-4o-mini Analyse":  { "main": [[{ "node": "Antwort validieren",  "type": "main", "index": 0 }]] },
+    "Antwort validieren":   { "main": [[{ "node": "Response senden",     "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "_readme": {
+    "payload_format": {
+      "incoming": {
+        "feedback": {
+          "id": "number",
+          "author": "string",
+          "category": "product | service | support | general",
+          "text": "string",
+          "rating": "1-5"
+        },
+        "timestamp": "ISO string"
+      },
+      "outgoing": {
+        "sentiment": "positive | neutral | negative",
+        "keywords": ["string – max 5 Schlüsselwörter"],
+        "summary": "string – ein Satz",
+        "feedbackId": "number"
+      }
+    },
+    "setup": [
+      "1. JSON in n8n importieren (Workflows → Import from file)",
+      "2. OpenAI Credential anlegen und bei 'GPT-4o-mini Analyse' hinterlegen",
+      "3. Workflow aktivieren → Webhook-URL kopieren",
+      "4. URL in der App im Feld 'n8n Webhook URL' eintragen",
+      "5. Feedback absenden → KI liefert Sentiment + Keywords + Summary in Echtzeit"
+    ]
+  }
+}

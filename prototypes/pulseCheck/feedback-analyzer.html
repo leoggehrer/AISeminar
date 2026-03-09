@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PulseCheck – Feedback Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #f5f0e8;
+  --cream2: #ede7d9;
+  --ink: #1a1612;
+  --ink2: #3d3530;
+  --muted: #8c7f74;
+  --border: #d8cfc3;
+  --pos: #2d6a4f;
+  --pos-bg: #d8f3dc;
+  --neu: #7c6d1a;
+  --neu-bg: #fef9c3;
+  --neg: #922b21;
+  --neg-bg: #fde8e8;
+  --accent: #c0392b;
+  --accent2: #e67e22;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+}
+
+/* HEADER */
+header {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-pulse {
+  width: 8px; height: 8px;
+  background: #e74c3c;
+  border-radius: 50%;
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
+  50% { transform: scale(1.3); box-shadow: 0 0 0 6px rgba(231,76,60,0); }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.n8n-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: rgba(245,240,232,0.5);
+}
+
+.status-indicator {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #2ecc71;
+  animation: blink 2s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+}
+
+/* MAIN LAYOUT */
+.main {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  min-height: calc(100vh - 64px);
+}
+
+/* LEFT: FORM + STATS */
+.sidebar {
+  background: var(--ink2);
+  color: var(--cream);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  overflow-y: auto;
+}
+
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+/* STATS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stat-card {
+  background: rgba(245,240,232,0.06);
+  border: 1px solid rgba(245,240,232,0.1);
+  border-radius: var(--radius);
+  padding: 16px 14px;
+  transition: background 0.2s;
+}
+
+.stat-card:hover { background: rgba(245,240,232,0.09); }
+
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-num.pos { color: #5dbb7a; }
+.stat-num.neu { color: #f0c040; }
+.stat-num.neg { color: #e87070; }
+
+.stat-label {
+  font-size: 0.72rem;
+  color: rgba(245,240,232,0.45);
+  font-weight: 300;
+}
+
+.sentiment-bar {
+  background: rgba(245,240,232,0.08);
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+  display: flex;
+  gap: 2px;
+}
+
+.bar-seg {
+  height: 100%;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  border-radius: 4px;
+}
+
+.bar-pos { background: #5dbb7a; }
+.bar-neu { background: #f0c040; }
+.bar-neg { background: #e87070; }
+
+/* FORM */
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-row { display: flex; gap: 10px; }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.form-group label {
+  font-size: 0.7rem;
+  color: rgba(245,240,232,0.5);
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: rgba(245,240,232,0.07);
+  border: 1px solid rgba(245,240,232,0.14);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--cream);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder { color: rgba(245,240,232,0.25); }
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus { border-color: rgba(245,240,232,0.4); }
+
+.form-group select option { background: var(--ink2); color: var(--cream); }
+.form-group textarea { resize: vertical; min-height: 90px; }
+
+/* RATING STARS */
+.star-row {
+  display: flex;
+  gap: 6px;
+}
+
+.star {
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: rgba(245,240,232,0.2);
+  transition: color 0.15s, transform 0.15s;
+  user-select: none;
+}
+
+.star.active { color: #f0c040; }
+.star:hover { transform: scale(1.2); }
+
+.btn-submit {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 13px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-submit:hover { opacity: 0.88; }
+.btn-submit:active { transform: scale(0.98); }
+.btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Webhook Config */
+.webhook-box {
+  background: rgba(245,240,232,0.04);
+  border: 1px solid rgba(245,240,232,0.1);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.webhook-box label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 7px;
+}
+
+.webhook-box input {
+  width: 100%;
+  background: rgba(245,240,232,0.06);
+  border: 1px solid rgba(245,240,232,0.12);
+  border-radius: 7px;
+  padding: 8px 11px;
+  color: rgba(245,240,232,0.6);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.63rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.webhook-box input:focus { border-color: rgba(245,240,232,0.3); color: var(--cream); }
+
+/* RIGHT: FEED */
+.feed {
+  padding: 32px 36px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.feed-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.feed-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.feed-title span {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.feed-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* FILTER TABS */
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.tab:hover { border-color: var(--ink2); color: var(--ink2); }
+.tab.active { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+/* FEEDBACK CARDS */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  animation: cardIn 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card:hover {
+  box-shadow: 0 6px 24px rgba(26,22,18,0.08);
+  transform: translateY(-1px);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 12px 0 0 12px;
+}
+
+.card.positive::before { background: var(--pos); }
+.card.neutral::before  { background: var(--neu-bg); background: #d4ac0d; }
+.card.negative::before { background: var(--neg); }
+.card.pending::before  { background: var(--border); }
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.card-author {
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+
+.category-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  background: var(--cream2);
+  color: var(--ink2);
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.card-date {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sentiment-badge {
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.sentiment-badge.positive { background: var(--pos-bg); color: var(--pos); }
+.sentiment-badge.neutral  { background: var(--neu-bg); color: var(--neu); }
+.sentiment-badge.negative { background: var(--neg-bg); color: var(--neg); }
+.sentiment-badge.pending  { background: var(--cream2); color: var(--muted); }
+
+.stars-display {
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  color: #d4ac0d;
+}
+
+.card-text {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--ink2);
+  margin-bottom: 12px;
+}
+
+.card-summary {
+  background: var(--cream);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  color: var(--ink2);
+  line-height: 1.5;
+  border-left: 3px solid var(--accent2);
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.card-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.keyword {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  background: var(--cream2);
+  color: var(--ink2);
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+.analyzing-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.mini-spinner {
+  width: 10px; height: 10px;
+  border: 1.5px solid var(--border);
+  border-top-color: var(--accent2);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.empty-feed {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--muted);
+}
+
+.empty-feed .big-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.empty-feed p {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-pulse"></div>
+    PulseCheck
+  </div>
+  <div class="header-right">
+    <div class="n8n-status">
+      <div class="status-indicator"></div>
+      n8n AI Sentiment-Agent
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- STATS -->
+    <div>
+      <div class="section-label">// Übersicht</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">Feedbacks gesamt</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num pos" id="statPos">0</div>
+          <div class="stat-label">Positiv</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num neu" id="statNeu">0</div>
+          <div class="stat-label">Neutral</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num neg" id="statNeg">0</div>
+          <div class="stat-label">Negativ</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="section-label" style="margin-bottom:8px;">// Sentiment Verteilung</div>
+        <div class="sentiment-bar">
+          <div class="bar-seg bar-pos" id="barPos" style="width:0%"></div>
+          <div class="bar-seg bar-neu" id="barNeu" style="width:0%"></div>
+          <div class="bar-seg bar-neg" id="barNeg" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div>
+      <div class="section-label">// Neues Feedback</div>
+      <div class="feedback-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="fAuthor" placeholder="Max Mustermann">
+          </div>
+          <div class="form-group">
+            <label>Kategorie</label>
+            <select id="fCategory">
+              <option value="product">Produkt</option>
+              <option value="service">Service</option>
+              <option value="support">Support</option>
+              <option value="general">Allgemein</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Bewertung</label>
+          <div class="star-row" id="starRow">
+            <span class="star" data-val="1">★</span>
+            <span class="star" data-val="2">★</span>
+            <span class="star" data-val="3">★</span>
+            <span class="star" data-val="4">★</span>
+            <span class="star" data-val="5">★</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Feedback Text</label>
+          <textarea id="fText" placeholder="Teile deine Erfahrung..."></textarea>
+        </div>
+
+        <button class="btn-submit" id="submitBtn" onclick="submitFeedback()">
+          <div class="spinner" id="submitSpinner"></div>
+          <span id="submitLabel">Analysieren & Speichern</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- WEBHOOK -->
+    <div class="webhook-box">
+      <label>n8n Webhook URL</label>
+      <input type="text" id="webhookUrl" placeholder="https://your-n8n.cloud/webhook/feedback-ai">
+    </div>
+
+  </div>
+
+  <!-- FEED -->
+  <div class="feed">
+    <div class="feed-top">
+      <div class="feed-title">Kunden­<span>stimmen</span></div>
+      <div class="feed-count" id="feedCount">0 Einträge</div>
+    </div>
+
+    <div class="filter-tabs">
+      <button class="tab active" onclick="setFilter('all', this)">Alle</button>
+      <button class="tab" onclick="setFilter('positive', this)">😊 Positiv</button>
+      <button class="tab" onclick="setFilter('neutral', this)">😐 Neutral</button>
+      <button class="tab" onclick="setFilter('negative', this)">😞 Negativ</button>
+      <button class="tab" onclick="setFilter('pending', this)">⏳ Ausstehend</button>
+    </div>
+
+    <div class="cards" id="cardList"></div>
+  </div>
+
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+let feedbacks = [
+  {
+    id: 1,
+    author: 'Sophie K.',
+    category: 'product',
+    text: 'Das Produkt hat meine Erwartungen weit übertroffen! Die Qualität ist ausgezeichnet und die Lieferung war blitzschnell. Ich bin begeistert.',
+    rating: 5,
+    sentiment: 'positive',
+    keywords: ['Qualität', 'Lieferung', 'begeistert'],
+    summary: 'Sehr zufriedene Kundin — Produkt und Liefergeschwindigkeit werden gelobt.',
+    createdAt: new Date(Date.now() - 86400000 * 2)
+  },
+  {
+    id: 2,
+    author: 'Thomas M.',
+    category: 'support',
+    text: 'Der Support hat lang gebraucht zum Antworten. Das Problem wurde zwar gelöst, aber die Wartezeit war frustrierend.',
+    rating: 2,
+    sentiment: 'negative',
+    keywords: ['Wartezeit', 'frustrierend', 'gelöst'],
+    summary: 'Negativerlebnis durch lange Reaktionszeit des Supports, obwohl Lösung gefunden.',
+    createdAt: new Date(Date.now() - 86400000)
+  },
+  {
+    id: 3,
+    author: 'Anna B.',
+    category: 'service',
+    text: 'Alles ok, nichts Besonderes. Hätte mir mehr Auswahl bei den Optionen gewünscht.',
+    rating: 3,
+    sentiment: 'neutral',
+    keywords: ['Auswahl', 'Optionen'],
+    summary: 'Neutrale Erfahrung, Wunsch nach mehr Auswahl geäußert.',
+    createdAt: new Date(Date.now() - 3600000 * 5)
+  }
+];
+
+let nextId = 4;
+let currentFilter = 'all';
+let currentRating = 0;
+
+// ─── STARS ───────────────────────────────────────────────
+document.querySelectorAll('.star').forEach(star => {
+  star.addEventListener('click', () => {
+    currentRating = parseInt(star.dataset.val);
+    document.querySelectorAll('.star').forEach(s => {
+      s.classList.toggle('active', parseInt(s.dataset.val) <= currentRating);
+    });
+  });
+});
+
+// ─── SUBMIT ──────────────────────────────────────────────
+async function submitFeedback() {
+  const author = document.getElementById('fAuthor').value.trim() || 'Anonym';
+  const category = document.getElementById('fCategory').value;
+  const text = document.getElementById('fText').value.trim();
+  const rating = currentRating || 3;
+
+  if (!text) { alert('Bitte Feedback Text eingeben.'); return; }
+
+  // Neues Feedback (pending)
+  const fb = { id: nextId++, author, category, text, rating, sentiment: 'pending', createdAt: new Date() };
+  feedbacks.unshift(fb);
+  renderAll();
+  setLoading(true);
+
+  // Felder zurücksetzen
+  document.getElementById('fAuthor').value = '';
+  document.getElementById('fText').value = '';
+  currentRating = 0;
+  document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+
+  const webhookUrl = document.getElementById('webhookUrl').value.trim();
+
+  const payload = {
+    feedback: { id: fb.id, author: fb.author, category: fb.category, text: fb.text, rating: fb.rating },
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    if (webhookUrl) {
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      applyAnalysis(fb.id, data);
+    } else {
+      // Demo-Modus
+      await new Promise(r => setTimeout(r, 1800 + Math.random() * 800));
+      applyAnalysis(fb.id, demoAnalyze(fb));
+    }
+  } catch (err) {
+    const item = feedbacks.find(f => f.id === fb.id);
+    if (item) { item.sentiment = 'negative'; item.summary = `Fehler: ${err.message}`; }
+    renderAll();
+  }
+
+  setLoading(false);
+}
+
+function applyAnalysis(id, data) {
+  // Erwartet: { sentiment, keywords, summary }
+  const item = feedbacks.find(f => f.id === id);
+  if (!item) return;
+  item.sentiment = data.sentiment || 'neutral';
+  item.keywords  = data.keywords  || [];
+  item.summary   = data.summary   || '';
+  renderAll();
+}
+
+function demoAnalyze(fb) {
+  const text = fb.text.toLowerCase();
+  const pos = ['super', 'toll', 'ausgezeichnet', 'begeistert', 'schnell', 'perfekt', 'top', 'prima', 'übertroffen', 'freude'].filter(w => text.includes(w));
+  const neg = ['schlecht', 'frustrierend', 'enttäuscht', 'lange', 'warten', 'problem', 'kaputt', 'teuer', 'falsch', 'fehler'].filter(w => text.includes(w));
+
+  let sentiment;
+  if (fb.rating >= 4 || (pos.length > neg.length && fb.rating >= 3)) sentiment = 'positive';
+  else if (fb.rating <= 2 || neg.length > pos.length) sentiment = 'negative';
+  else sentiment = 'neutral';
+
+  const allWords = fb.text.match(/\b[A-ZÄÖÜ][a-zäöü]{3,}\b/g) || [];
+  const keywords = [...new Set(allWords)].slice(0, 4);
+
+  const summaries = {
+    positive: `Positive Rückmeldung — Kunde zeigt sich zufrieden mit ${fb.category === 'product' ? 'dem Produkt' : 'dem Service'}.`,
+    neutral: `Gemischtes Feedback — einige Verbesserungswünsche, grundsätzlich zufrieden.`,
+    negative: `Kritisches Feedback — Handlungsbedarf im Bereich ${fb.category}. Nachfassen empfohlen.`
+  };
+
+  return { sentiment, keywords, summary: summaries[sentiment] };
+}
+
+// ─── RENDER ──────────────────────────────────────────────
+function renderAll() {
+  renderStats();
+  renderCards();
+}
+
+function renderStats() {
+  const analyzed = feedbacks.filter(f => f.sentiment !== 'pending');
+  const pos = analyzed.filter(f => f.sentiment === 'positive').length;
+  const neu = analyzed.filter(f => f.sentiment === 'neutral').length;
+  const neg = analyzed.filter(f => f.sentiment === 'negative').length;
+  const total = feedbacks.length;
+  const base = analyzed.length || 1;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPos').textContent = pos;
+  document.getElementById('statNeu').textContent = neu;
+  document.getElementById('statNeg').textContent = neg;
+
+  document.getElementById('barPos').style.width = (pos / base * 100) + '%';
+  document.getElementById('barNeu').style.width = (neu / base * 100) + '%';
+  document.getElementById('barNeg').style.width = (neg / base * 100) + '%';
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderCards();
+}
+
+function renderCards() {
+  const list = document.getElementById('cardList');
+  const filtered = currentFilter === 'all'
+    ? feedbacks
+    : feedbacks.filter(f => f.sentiment === currentFilter);
+
+  document.getElementById('feedCount').textContent = filtered.length + ' Einträge';
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-feed">
+        <span class="big-icon">🔍</span>
+        <p>Noch kein Feedback in dieser Kategorie.<br>Füge das erste hinzu!</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(fb => `
+    <div class="card ${fb.sentiment}">
+      <div class="card-top">
+        <div>
+          <div class="card-author">${esc(fb.author)}</div>
+          <div class="card-meta">
+            <span class="category-tag">${fb.category}</span>
+            <span class="card-date">${formatDate(fb.createdAt)}</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="sentiment-badge ${fb.sentiment}">
+            ${ fb.sentiment === 'pending' ? '⏳ Analysiert...' :
+               fb.sentiment === 'positive' ? '😊 Positiv' :
+               fb.sentiment === 'neutral'  ? '😐 Neutral' : '😞 Negativ' }
+          </span>
+          <div class="stars-display">${'★'.repeat(fb.rating)}${'☆'.repeat(5 - fb.rating)}</div>
+        </div>
+      </div>
+
+      <div class="card-text">${esc(fb.text)}</div>
+
+      ${ fb.sentiment === 'pending' ? `
+        <div class="analyzing-badge">
+          <div class="mini-spinner"></div>
+          KI analysiert Sentiment...
+        </div>` : '' }
+
+      ${ fb.summary ? `<div class="card-summary">${esc(fb.summary)}</div>` : '' }
+
+      ${ fb.keywords && fb.keywords.length ? `
+        <div class="card-keywords">
+          ${ fb.keywords.map(k => `<span class="keyword">${esc(k)}</span>`).join('') }
+        </div>` : '' }
+    </div>
+  `).join('');
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString('de-AT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function setLoading(val) {
+  document.getElementById('submitBtn').disabled = val;
+  document.getElementById('submitSpinner').style.display = val ? 'block' : 'none';
+  document.getElementById('submitLabel').textContent = val ? 'KI analysiert...' : 'Analysieren & Speichern';
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>

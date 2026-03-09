@@ -1,0 +1,136 @@
+{
+  "name": "Maison – KI Produktbeschreibungs-Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "product-description-ai",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "node_webhook",
+      "name": "Webhook – Eingang",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "notes": "Empfängt POST: { product: { id, name, category, price, stock, tone }, timestamp }"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst p = body.product;\n\nconst toneInstructions = {\n  luxury: 'Schreibe in einem eleganten, exklusiven Luxus-Stil. Betone Qualität, Handwerk und Exklusivität. Verwende gehobene Sprache ohne Übertreibungen.',\n  casual: 'Schreibe locker und sympathisch. Direkte Ansprache (du), freundlich und nahbar. Wie eine Empfehlung vom Freund.',\n  technical: 'Schreibe technisch präzise. Betone Spezifikationen, Materialien, Normen und messbare Eigenschaften. Sachlich und informativ.'\n};\n\nconst toneHint = toneInstructions[p.tone] || toneInstructions.casual;\n\nconst prompt = `Erstelle eine verkaufsstarke Produktbeschreibung für folgenden Artikel. Antworte NUR mit validem JSON.\n\nProdukt:\n- Name: ${p.name}\n- Kategorie: ${p.category}\n- Preis: ${p.price} EUR\n- Lagerbestand: ${p.stock} Stück\n- Gewünschter Ton: ${p.tone}\n\nTon-Anweisung: ${toneHint}\n\nAntworte in exakt diesem JSON-Format:\n{\n  \"description\": \"2-3 Sätze Produktbeschreibung auf Deutsch. Kein Markdown.\",\n  \"tags\": [\"3 bis 5 kurze Schlagwörter als Array\"]\n}\n\nRegeln:\n- Beschreibung: 2-3 flüssige Sätze, sprachlich passend zum Ton\n- Tags: kurze Substantive oder Adjektive, max. 2 Wörter pro Tag\n- Kein Markdown, keine Backticks, reines JSON`;\n\nreturn [{ json: { prompt, productId: p.id } }];"
+      },
+      "id": "node_prepare",
+      "name": "Prompt aufbauen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [380, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Du bist ein erfahrener E-Commerce Texter. Du generierst prägnante, verkaufsstarke Produktbeschreibungen auf Deutsch. Du antwortest AUSSCHLIESSLICH mit validem JSON — kein Erklärungstext, keine Markdown-Backticks."
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 400
+        }
+      },
+      "id": "node_openai",
+      "name": "GPT-4o-mini Texter",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [560, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiText = $input.first().json.message?.content || '{}';\nconst productId = $('Prompt aufbauen').first().json.productId;\n\nlet parsed;\ntry {\n  const cleaned = aiText.replace(/```json\\n?/g,'').replace(/```/g,'').trim();\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = {\n    description: 'Beschreibung konnte nicht generiert werden.',\n    tags: []\n  };\n}\n\n// Validierung\nif (typeof parsed.description !== 'string') parsed.description = '';\nif (!Array.isArray(parsed.tags)) parsed.tags = [];\nparsed.tags = parsed.tags.slice(0, 5).map(t => String(t));\n\nreturn [{ json: {\n  description: parsed.description,\n  tags: parsed.tags,\n  productId\n}}];"
+      },
+      "id": "node_parse",
+      "name": "Antwort validieren",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "node_response",
+      "name": "Response senden",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [920, 300]
+    }
+  ],
+  "connections": {
+    "Webhook – Eingang":   { "main": [[{ "node": "Prompt aufbauen",    "type": "main", "index": 0 }]] },
+    "Prompt aufbauen":     { "main": [[{ "node": "GPT-4o-mini Texter", "type": "main", "index": 0 }]] },
+    "GPT-4o-mini Texter":  { "main": [[{ "node": "Antwort validieren", "type": "main", "index": 0 }]] },
+    "Antwort validieren":  { "main": [[{ "node": "Response senden",    "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "_readme": {
+    "beschreibung": "GPT-4o-mini generiert auf Abruf verkaufsstarke Produktbeschreibungen in 3 Tönen: luxury, casual, technical.",
+    "payload_format": {
+      "incoming": {
+        "product": {
+          "id": "number",
+          "name": "string",
+          "category": "mode | elektronik | haushalt | sport | beauty",
+          "price": "number (EUR)",
+          "stock": "number",
+          "tone": "luxury | casual | technical"
+        },
+        "timestamp": "ISO string"
+      },
+      "outgoing": {
+        "description": "string – 2-3 Sätze Produktbeschreibung",
+        "tags": ["string – max. 5 Schlagwörter"],
+        "productId": "number"
+      }
+    },
+    "setup": [
+      "1. JSON in n8n importieren",
+      "2. OpenAI Credential bei 'GPT-4o-mini Texter' hinterlegen",
+      "3. Workflow aktivieren → Webhook-URL kopieren",
+      "4. URL in der App eintragen",
+      "5. Auf '✦ Beschreibung generieren' klicken — fertig!"
+    ],
+    "tone_guide": {
+      "luxury":    "Elegant, exklusiv, gehobene Sprache — ideal für Mode, Beauty, Premium-Produkte",
+      "casual":    "Locker, direkt, sympathisch — ideal für Sport, Alltagsprodukte",
+      "technical": "Präzise, sachlich, mit Specs — ideal für Elektronik, Haushaltsgeräte"
+    }
+  }
+}
