@@ -1,0 +1,8 @@
+﻿{
+  "profiles": {
+    "ProductCatalog.CodeGenApp": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    }
+  }
+}

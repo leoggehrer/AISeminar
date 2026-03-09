@@ -1,0 +1,439 @@
+{
+  "updatedAt": "2026-03-08T11:24:01.120Z",
+  "createdAt": "2026-03-08T11:21:08.732Z",
+  "id": "mk1afsl4vLmTHSm5",
+  "name": "PulseCheckAgent",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rate-feedback-ai",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "3f95ec8d-2248-4f2a-8c45-ef84950164bd",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -144
+      ],
+      "webhookId": "9154b2a5-756f-49b0-8c8f-f3ac02a16ea2",
+      "notes": "Empfängt POST: { feedback: { id, author, category, text, rating }, timestamp }"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst fb = body.feedback;\n\nconst prompt = `Analysiere dieses Kundenfeedback:\n\n- Autor: ${fb.author}\n- Kategorie: ${fb.category}\n- Bewertung: ${fb.rating}/5 Sterne\n- Text: \"${fb.text}\"\n\nSentiment-Regeln:\n- positive: Bewertung 4-5 UND überwiegend positiver Ton\n- negative: Bewertung 1-2 ODER starke Kritik/Frustration\n- neutral: Bewertung 3 oder gemischte Aussagen`;\n\nreturn [{ json: { prompt, feedbackId: fb.id } }];"
+      },
+      "id": "dbd1db55-d820-4144-999b-132836ee50ce",
+      "name": "PrepareInput",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Du bist ein präziser Sentiment-Analyse Assistent für Kundenfeedback. Analysiere den Text, klassifiziere das Sentiment, extrahiere relevante Keywords und erstelle eine kurze Zusammenfassung auf Deutsch. Antworte AUSSCHLIESSLICH mit validem JSON – kein Erklärungstext, keine Markdown-Backticks."
+        }
+      },
+      "id": "cad7afef-b3a5-47de-824b-c3e3b53273b9",
+      "name": "AIAgent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        608,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4.1-mini",
+        "options": {
+          "maxTokens": 300,
+          "temperature": 0.1
+        }
+      },
+      "id": "bca2f735-b6a9-4077-afee-534d2219995f",
+      "name": "ChatModel",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        608,
+        112
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"sentiment\": \"positive\",\n  \"keywords\": [\"Schlüsselwort 1\", \"Schlüsselwort 2\"],\n  \"summary\": \"Ein Satz Zusammenfassung auf Deutsch.\"\n}"
+      },
+      "id": "ddad78b7-2c11-42b0-b4ce-3106ea47f5b8",
+      "name": "OutputParser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json;\nconst feedbackId = $('PrepareInput').first().json.feedbackId;\n\nconst rawOutput =\n  result.output ??\n  result.text ??\n  result.response ??\n  result.message?.content ??\n  {};\n\nlet parsed = {};\n\nif (rawOutput && typeof rawOutput === 'object' && !Array.isArray(rawOutput)) {\n  parsed = rawOutput;\n} else {\n  try {\n    const cleaned = String(rawOutput)\n      .replace(/```json\\n?/g, '')\n      .replace(/```/g, '')\n      .trim();\n    parsed = JSON.parse(cleaned || '{}');\n  } catch (e) {\n    parsed = { sentiment: 'neutral', keywords: [], summary: 'Analyse fehlgeschlagen.' };\n  }\n}\n\nconst validSentiments = ['positive', 'neutral', 'negative'];\nif (!validSentiments.includes(parsed.sentiment)) parsed.sentiment = 'neutral';\nif (!Array.isArray(parsed.keywords)) parsed.keywords = [];\nparsed.keywords = parsed.keywords.slice(0, 5).map(k => String(k));\nif (typeof parsed.summary !== 'string') parsed.summary = '';\n\nreturn [{ json: {\n  sentiment: parsed.sentiment,\n  keywords: parsed.keywords,\n  summary: parsed.summary,\n  feedbackId\n} }];"
+      },
+      "id": "2c4d3850-ad36-471f-b9f6-35a66feef8f7",
+      "name": "ValidateOutput",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "0daa8eab-89d3-40fa-a35e-af9b46f38f7e",
+      "name": "Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        -144
+      ]
+    }
+  ],
+  "connections": {
+    "PrepareInput": {
+      "main": [
+        [
+          {
+            "node": "AIAgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatModel": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AIAgent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OutputParser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AIAgent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AIAgent": {
+      "main": [
+        [
+          {
+            "node": "ValidateOutput",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ValidateOutput": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "PrepareInput",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "00afd60d-39e9-4aa2-b616-7294e7c9002a",
+  "activeVersionId": "00afd60d-39e9-4aa2-b616-7294e7c9002a",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-08T11:21:08.734Z",
+      "createdAt": "2026-03-08T11:21:08.734Z",
+      "role": "workflow:owner",
+      "workflowId": "mk1afsl4vLmTHSm5",
+      "projectId": "NGVmW0kzxTFQBNsK"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-03-08T11:27:06.000Z",
+    "createdAt": "2026-03-08T11:24:01.121Z",
+    "versionId": "00afd60d-39e9-4aa2-b616-7294e7c9002a",
+    "workflowId": "mk1afsl4vLmTHSm5",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "rate-feedback-ai",
+          "responseMode": "responseNode",
+          "options": {
+            "allowedOrigins": "*"
+          }
+        },
+        "id": "3f95ec8d-2248-4f2a-8c45-ef84950164bd",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          208,
+          -144
+        ],
+        "webhookId": "9154b2a5-756f-49b0-8c8f-f3ac02a16ea2",
+        "notes": "Empfängt POST: { feedback: { id, author, category, text, rating }, timestamp }"
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body;\nconst fb = body.feedback;\n\nconst prompt = `Analysiere dieses Kundenfeedback:\n\n- Autor: ${fb.author}\n- Kategorie: ${fb.category}\n- Bewertung: ${fb.rating}/5 Sterne\n- Text: \"${fb.text}\"\n\nSentiment-Regeln:\n- positive: Bewertung 4-5 UND überwiegend positiver Ton\n- negative: Bewertung 1-2 ODER starke Kritik/Frustration\n- neutral: Bewertung 3 oder gemischte Aussagen`;\n\nreturn [{ json: { prompt, feedbackId: fb.id } }];"
+        },
+        "id": "dbd1db55-d820-4144-999b-132836ee50ce",
+        "name": "PrepareInput",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          416,
+          -144
+        ]
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.prompt }}",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "Du bist ein präziser Sentiment-Analyse Assistent für Kundenfeedback. Analysiere den Text, klassifiziere das Sentiment, extrahiere relevante Keywords und erstelle eine kurze Zusammenfassung auf Deutsch. Antworte AUSSCHLIESSLICH mit validem JSON – kein Erklärungstext, keine Markdown-Backticks."
+          }
+        },
+        "id": "cad7afef-b3a5-47de-824b-c3e3b53273b9",
+        "name": "AIAgent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 1.7,
+        "position": [
+          608,
+          -144
+        ]
+      },
+      {
+        "parameters": {
+          "model": "gpt-4.1-mini",
+          "options": {
+            "maxTokens": 300,
+            "temperature": 0.1
+          }
+        },
+        "id": "bca2f735-b6a9-4077-afee-534d2219995f",
+        "name": "ChatModel",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1,
+        "position": [
+          608,
+          112
+        ],
+        "credentials": {
+          "openAiApi": {
+            "id": "avFMsETk9vzF57mg",
+            "name": "OpenAiISO"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"sentiment\": \"positive\",\n  \"keywords\": [\"Schlüsselwort 1\", \"Schlüsselwort 2\"],\n  \"summary\": \"Ein Satz Zusammenfassung auf Deutsch.\"\n}"
+        },
+        "id": "ddad78b7-2c11-42b0-b4ce-3106ea47f5b8",
+        "name": "OutputParser",
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.2,
+        "position": [
+          752,
+          112
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const result = $input.first().json;\nconst feedbackId = $('PrepareInput').first().json.feedbackId;\n\nconst rawOutput =\n  result.output ??\n  result.text ??\n  result.response ??\n  result.message?.content ??\n  {};\n\nlet parsed = {};\n\nif (rawOutput && typeof rawOutput === 'object' && !Array.isArray(rawOutput)) {\n  parsed = rawOutput;\n} else {\n  try {\n    const cleaned = String(rawOutput)\n      .replace(/```json\\n?/g, '')\n      .replace(/```/g, '')\n      .trim();\n    parsed = JSON.parse(cleaned || '{}');\n  } catch (e) {\n    parsed = { sentiment: 'neutral', keywords: [], summary: 'Analyse fehlgeschlagen.' };\n  }\n}\n\nconst validSentiments = ['positive', 'neutral', 'negative'];\nif (!validSentiments.includes(parsed.sentiment)) parsed.sentiment = 'neutral';\nif (!Array.isArray(parsed.keywords)) parsed.keywords = [];\nparsed.keywords = parsed.keywords.slice(0, 5).map(k => String(k));\nif (typeof parsed.summary !== 'string') parsed.summary = '';\n\nreturn [{ json: {\n  sentiment: parsed.sentiment,\n  keywords: parsed.keywords,\n  summary: parsed.summary,\n  feedbackId\n} }];"
+        },
+        "id": "2c4d3850-ad36-471f-b9f6-35a66feef8f7",
+        "name": "ValidateOutput",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          944,
+          -144
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($json) }}",
+          "options": {
+            "responseCode": 200,
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "id": "0daa8eab-89d3-40fa-a35e-af9b46f38f7e",
+        "name": "Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          1136,
+          -144
+        ]
+      }
+    ],
+    "connections": {
+      "PrepareInput": {
+        "main": [
+          [
+            {
+              "node": "AIAgent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ChatModel": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AIAgent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OutputParser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AIAgent",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AIAgent": {
+        "main": [
+          [
+            {
+              "node": "ValidateOutput",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ValidateOutput": {
+        "main": [
+          [
+            {
+              "node": "Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "PrepareInput",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Gerhard Gehrer",
+    "name": "Version 00afd60d",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": []
+}

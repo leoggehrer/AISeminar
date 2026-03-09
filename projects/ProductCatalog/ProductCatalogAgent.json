@@ -1,0 +1,439 @@
+{
+  "updatedAt": "2026-03-07T14:30:36.940Z",
+  "createdAt": "2026-03-07T13:55:21.795Z",
+  "id": "Euutsl9TuwzcLsDS",
+  "name": "ProductCatalogAgent",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "product-description-ai",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "c55a6724-d9d3-4f2c-8cd3-e412a6f6d5a1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        640,
+        -64
+      ],
+      "webhookId": "761578e1-61b3-49e0-a733-739ad2a60944",
+      "notes": "Empfängt POST: { product: { id, name, category, price, stock, tone }, timestamp }"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst p = body.product;\n\nconst toneInstructions = {\n  luxury: 'Schreibe in einem eleganten, exklusiven Luxus-Stil. Betone Qualität, Handwerk und Exklusivität. Verwende gehobene Sprache ohne Übertreibungen.',\n  casual: 'Schreibe locker und sympathisch. Direkte Ansprache (du), freundlich und nahbar. Wie eine Empfehlung vom Freund.',\n  technical: 'Schreibe technisch präzise. Betone Spezifikationen, Materialien, Normen und messbare Eigenschaften. Sachlich und informativ.'\n};\n\nconst toneHint = toneInstructions[p.tone] || toneInstructions.casual;\n\nconst prompt = `Erstelle eine verkaufsstarke Produktbeschreibung für folgenden Artikel. Antworte NUR mit validem JSON.\n\nProdukt:\n- Name: ${p.name}\n- Kategorie: ${p.category}\n- Preis: ${p.price} EUR\n- Lagerbestand: ${p.stock} Stück\n- Gewünschter Ton: ${p.tone}\n\nTon-Anweisung: ${toneHint}\n\nAntworte in exakt diesem JSON-Format:\n{\n  \"description\": \"2-3 Sätze Produktbeschreibung auf Deutsch. Kein Markdown.\",\n  \"tags\": [\"3 bis 5 kurze Schlagwörter als Array\"]\n}\n\nRegeln:\n- Beschreibung: 2-3 flüssige Sätze, sprachlich passend zum Ton\n- Tags: kurze Substantive oder Adjektive, max. 2 Wörter pro Tag\n- Kein Markdown, keine Backticks, reines JSON`;\n\nreturn [{ json: { prompt, productId: p.id } }];"
+      },
+      "id": "2c8293fe-ab1c-4929-b5e3-2081e25e8e8a",
+      "name": "PrepareInput",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4.1-mini",
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.7
+        }
+      },
+      "id": "d7d4c020-8f8c-4162-93f4-e2250dc43290",
+      "name": "ChatModel",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        160
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json;\nconst productId = $('PrepareInput').first().json.productId;\n\nconst rawOutput =\n  result.output ??\n  result.text ??\n  result.response ??\n  result.message?.content ??\n  {};\n\nlet parsed = {};\n\nif (rawOutput && typeof rawOutput === 'object' && !Array.isArray(rawOutput)) {\n  // Structured Output Parser usually returns an object directly.\n  parsed = rawOutput;\n} else {\n  try {\n    const cleaned = String(rawOutput)\n      .replace(/```json\\n?/g, '')\n      .replace(/```/g, '')\n      .trim();\n    parsed = JSON.parse(cleaned || '{}');\n  } catch (e) {\n    parsed = {\n      description: 'Beschreibung konnte nicht generiert werden.',\n      tags: []\n    };\n  }\n}\n\nif (typeof parsed.description !== 'string') parsed.description = '';\nif (!Array.isArray(parsed.tags)) parsed.tags = [];\nparsed.tags = parsed.tags.slice(0, 5).map((t) => String(t));\n\nreturn [{\n  json: {\n    description: parsed.description,\n    tags: parsed.tags,\n    productId\n  }\n}];"
+      },
+      "id": "5baf0897-cbd0-4423-aa91-481c650aaae3",
+      "name": "ValidateOutput",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "10eb66df-1e71-4b11-9e0d-d111b6b386fd",
+      "name": "Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1536,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"description\": \"2-3 Saetze Produktbeschreibung auf Deutsch. Kein Markdown.\",\n  \"tags\": [\"Schlagwort 1\", \"Schlagwort 2\", \"Schlagwort 3\"]\n}"
+      },
+      "id": "be2e772f-6df5-45af-abda-11a32a7da8a3",
+      "name": "OutputParser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Du bist ein erfahrener E-Commerce Texter. Du generierst prägnante, verkaufsstarke Produktbeschreibungen auf Deutsch. Du antwortest AUSSCHLIESSLICH mit validem JSON - kein Erklaerungstext, keine Markdown-Backticks.\n\n# ANREDE\n\nVermeide eine Anrede mit DU oder Hey"
+        }
+      },
+      "id": "3f0d7e26-60da-436a-a978-c44cb29df917",
+      "name": "AIAgent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1056,
+        -64
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "PrepareInput",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepareInput": {
+      "main": [
+        [
+          {
+            "node": "AIAgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatModel": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AIAgent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ValidateOutput": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OutputParser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AIAgent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AIAgent": {
+      "main": [
+        [
+          {
+            "node": "ValidateOutput",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "afd709a0-90df-4351-b975-fb7f0a6a378d",
+  "activeVersionId": "afd709a0-90df-4351-b975-fb7f0a6a378d",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-07T13:55:21.798Z",
+      "createdAt": "2026-03-07T13:55:21.798Z",
+      "role": "workflow:owner",
+      "workflowId": "Euutsl9TuwzcLsDS",
+      "projectId": "NGVmW0kzxTFQBNsK"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-03-07T20:44:28.000Z",
+    "createdAt": "2026-03-07T14:30:36.941Z",
+    "versionId": "afd709a0-90df-4351-b975-fb7f0a6a378d",
+    "workflowId": "Euutsl9TuwzcLsDS",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "product-description-ai",
+          "responseMode": "responseNode",
+          "options": {
+            "allowedOrigins": "*"
+          }
+        },
+        "id": "c55a6724-d9d3-4f2c-8cd3-e412a6f6d5a1",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          640,
+          -64
+        ],
+        "webhookId": "761578e1-61b3-49e0-a733-739ad2a60944",
+        "notes": "Empfängt POST: { product: { id, name, category, price, stock, tone }, timestamp }"
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body;\nconst p = body.product;\n\nconst toneInstructions = {\n  luxury: 'Schreibe in einem eleganten, exklusiven Luxus-Stil. Betone Qualität, Handwerk und Exklusivität. Verwende gehobene Sprache ohne Übertreibungen.',\n  casual: 'Schreibe locker und sympathisch. Direkte Ansprache (du), freundlich und nahbar. Wie eine Empfehlung vom Freund.',\n  technical: 'Schreibe technisch präzise. Betone Spezifikationen, Materialien, Normen und messbare Eigenschaften. Sachlich und informativ.'\n};\n\nconst toneHint = toneInstructions[p.tone] || toneInstructions.casual;\n\nconst prompt = `Erstelle eine verkaufsstarke Produktbeschreibung für folgenden Artikel. Antworte NUR mit validem JSON.\n\nProdukt:\n- Name: ${p.name}\n- Kategorie: ${p.category}\n- Preis: ${p.price} EUR\n- Lagerbestand: ${p.stock} Stück\n- Gewünschter Ton: ${p.tone}\n\nTon-Anweisung: ${toneHint}\n\nAntworte in exakt diesem JSON-Format:\n{\n  \"description\": \"2-3 Sätze Produktbeschreibung auf Deutsch. Kein Markdown.\",\n  \"tags\": [\"3 bis 5 kurze Schlagwörter als Array\"]\n}\n\nRegeln:\n- Beschreibung: 2-3 flüssige Sätze, sprachlich passend zum Ton\n- Tags: kurze Substantive oder Adjektive, max. 2 Wörter pro Tag\n- Kein Markdown, keine Backticks, reines JSON`;\n\nreturn [{ json: { prompt, productId: p.id } }];"
+        },
+        "id": "2c8293fe-ab1c-4929-b5e3-2081e25e8e8a",
+        "name": "PrepareInput",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          864,
+          -64
+        ]
+      },
+      {
+        "parameters": {
+          "model": "gpt-4.1-mini",
+          "options": {
+            "maxTokens": 400,
+            "temperature": 0.7
+          }
+        },
+        "id": "d7d4c020-8f8c-4162-93f4-e2250dc43290",
+        "name": "ChatModel",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1,
+        "position": [
+          1056,
+          160
+        ],
+        "credentials": {
+          "openAiApi": {
+            "id": "avFMsETk9vzF57mg",
+            "name": "OpenAiISO"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const result = $input.first().json;\nconst productId = $('PrepareInput').first().json.productId;\n\nconst rawOutput =\n  result.output ??\n  result.text ??\n  result.response ??\n  result.message?.content ??\n  {};\n\nlet parsed = {};\n\nif (rawOutput && typeof rawOutput === 'object' && !Array.isArray(rawOutput)) {\n  // Structured Output Parser usually returns an object directly.\n  parsed = rawOutput;\n} else {\n  try {\n    const cleaned = String(rawOutput)\n      .replace(/```json\\n?/g, '')\n      .replace(/```/g, '')\n      .trim();\n    parsed = JSON.parse(cleaned || '{}');\n  } catch (e) {\n    parsed = {\n      description: 'Beschreibung konnte nicht generiert werden.',\n      tags: []\n    };\n  }\n}\n\nif (typeof parsed.description !== 'string') parsed.description = '';\nif (!Array.isArray(parsed.tags)) parsed.tags = [];\nparsed.tags = parsed.tags.slice(0, 5).map((t) => String(t));\n\nreturn [{\n  json: {\n    description: parsed.description,\n    tags: parsed.tags,\n    productId\n  }\n}];"
+        },
+        "id": "5baf0897-cbd0-4423-aa91-481c650aaae3",
+        "name": "ValidateOutput",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1360,
+          -64
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($json) }}",
+          "options": {
+            "responseCode": 200,
+            "responseHeaders": {
+              "entries": [
+                {
+                  "name": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "name": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ]
+            }
+          }
+        },
+        "id": "10eb66df-1e71-4b11-9e0d-d111b6b386fd",
+        "name": "Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          1536,
+          -64
+        ]
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"description\": \"2-3 Saetze Produktbeschreibung auf Deutsch. Kein Markdown.\",\n  \"tags\": [\"Schlagwort 1\", \"Schlagwort 2\", \"Schlagwort 3\"]\n}"
+        },
+        "id": "be2e772f-6df5-45af-abda-11a32a7da8a3",
+        "name": "OutputParser",
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.2,
+        "position": [
+          1200,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.prompt }}",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "Du bist ein erfahrener E-Commerce Texter. Du generierst prägnante, verkaufsstarke Produktbeschreibungen auf Deutsch. Du antwortest AUSSCHLIESSLICH mit validem JSON - kein Erklaerungstext, keine Markdown-Backticks.\n\n# ANREDE\n\nVermeide eine Anrede mit DU oder Hey"
+          }
+        },
+        "id": "3f0d7e26-60da-436a-a978-c44cb29df917",
+        "name": "AIAgent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 1.7,
+        "position": [
+          1056,
+          -64
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "PrepareInput",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "PrepareInput": {
+        "main": [
+          [
+            {
+              "node": "AIAgent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ChatModel": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AIAgent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ValidateOutput": {
+        "main": [
+          [
+            {
+              "node": "Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OutputParser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AIAgent",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AIAgent": {
+        "main": [
+          [
+            {
+              "node": "ValidateOutput",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Gerhard Gehrer",
+    "name": "Version afd709a0",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": []
+}

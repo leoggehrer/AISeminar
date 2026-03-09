@@ -1,0 +1,8 @@
+﻿{
+  "profiles": {
+    "PulseCheck.CodeGenApp": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    }
+  }
+}

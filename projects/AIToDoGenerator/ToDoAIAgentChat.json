@@ -1,0 +1,1623 @@
+{
+  "updatedAt": "2026-03-05T21:08:24.102Z",
+  "createdAt": "2025-12-04T16:02:38.061Z",
+  "id": "8U81PxALkqAWXcUk",
+  "name": "ToDoAIAgentChat",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "08526b62-fe5f-4ac6-ac52-4ab21a88dfca",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2416,
+        -160
+      ],
+      "webhookId": "todo-agent-chat"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Aktuelle Zeit: {{ $now }}\nidentityId: {{ $json.identityId ?? 0 }}\n\n{{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "=Du bist ein freundlicher ToDo-Listen Assistent. Deine Aufgabe ist es, dem Benutzer zu helfen, Aufgaben zu sammeln und zu organisieren.\n\n**Deine Fähigkeiten:**\n1. Aufgaben aus dem Gespräch erkennen und merken\n2. Prioritäten verstehen (Low=1, Medium=2, High=3) Default= 2\n3. Fälligkeitsdaten erkennen (nicht unbedingt erforderlich)\n4. Den Typ der Liste erkennen (Private=1, Business=2) Default=Private\n\n**Gesprächsführung:**\n- Frage ob du eine Vorschlag machen sollst\n- Wenn du einen Vorschlag machst, dann bitte mit den Tätigkeiten und kurze Beschreibungen\n- Frage nach Details zu Aufgaben wenn nötig\n- Fasse zwischendurch zusammen welche Aufgaben du gesammelt hast\n- Frage nach Priorität und Fälligkeitsdatum wenn nicht angegeben\n- Sei hilfsbereit und freundlich\n\n**Darstellung:**\nWenn du die Aufgabenliste anzeigst, dann wähle die Form:\n\n* Listenname\n - Aufgabe 1\n - Aufgabe 2\n - ...\n - Aufgabe n\n\n**WICHTIG - Speicher-Befehl:**\nWenn der Benutzer sagt \"Liste speichern\", \"abspeichern\", \"speichern\", \"fertig\", \"übernehmen\" oder ähnliches:\n1. Antworte mit einer Zusammenfassung\n2. Füge am ENDE deiner Antwort einen JSON-Block ein mit genau diesem Format:\n\n```json\n{\n  \"action\":\"SAVE_TODO_LIST\",\n  \"data\":{\n    \"listName\":\"Name der Liste\",\n    \"listDescription\":\"Beschreibung\",\n    \"listType\":1,\n    \"items\": [{\"name\":\"Aufgabe\",\"description\":\"Details\",\"priority\":2,\"dueDate\":\"2025-12-31\"}]}}\n```\n\nDer JSON-Block muss:\n- Am Ende der Nachricht stehen\n- action = \"SAVE_TODO_LIST\" enthalten\n- Alle gesammelten Aufgaben im items Array haben\n- priority als Zahl (1=Low, 2=Medium, 3=High)\n- listType als Zahl (1=Private, 2=Business)\n- dueDate im Format YYYY-MM-DD oder null\n\nOhne Speicher-Befehl: Führe einfach das Gespräch weiter, sammle Aufgaben, stelle Fragen."
+        }
+      },
+      "id": "5e67d001-d1e7-4f7e-922a-cd8fbefc87f6",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        -1984,
+        32
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -1888,
+        400
+      ],
+      "id": "305cb3d8-da3c-4ad9-947e-2789c2a80a1d",
+      "name": "ChatMemory",
+      "credentials": {
+        "postgres": {
+          "id": "iYMqy2OzuA3ajmSK",
+          "name": "Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "toDoChat",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2416,
+        32
+      ],
+      "id": "39ac45c3-5c41-4690-8d4c-551e2c244388",
+      "name": "Webhook",
+      "webhookId": "722d7bb3-63fd-4092-8ef7-89a2722e3a1b"
+    },
+    {
+      "parameters": {
+        "jsCode": "function generateGuid() {\n    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {\n        const r = Math.random() * 16 | 0;\n        const v = c === 'x' ? r : (r & 0x3 | 0x8);\n        return v.toString(16);\n    });\n}\n\nreturn {\n  \"guid\": generateGuid(),\n  \"sessionId\": $input?.first()?.json?.body?.sessionId ?? generateGuid(),\n  \"chatInput\": $input?.first()?.json?.body?.message ?? '',\n  \"identityId\": $input.first().json?.body?.identityId || 0\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2208,
+        32
+      ],
+      "id": "16519c0a-16da-44f3-af45-9fc9eba4b37d",
+      "name": "SetInputData"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v3.1:671b-cloud",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -2176,
+        384
+      ],
+      "id": "098bb6c8-f343-48e5-aaca-9562966e0985",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "fCEisapDHuJhr5FV",
+          "name": "Ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check if AI response contains save command\nconst aiOutput = $input.first().json.output || $input.first().json.text || '';\n\n// Look for the JSON save command in the response\nconst jsonMatch = aiOutput.match(/```json\\s*\\n?({[\\s\\S]*?\"action\"\\s*:\\s*\"SAVE_TODO_LIST\"[\\s\\S]*?})\\s*\\n?```/);\n\nif (jsonMatch) {\n  try {\n    const saveData = JSON.parse(jsonMatch[1]);\n    \n    if (saveData.action === 'SAVE_TODO_LIST' && saveData.data) {\n      // Clean the response text (remove JSON block for display)\n      const cleanResponse = aiOutput.replace(/```json[\\s\\S]*?```/g, '').trim();\n      \n      return {\n        json: {\n          shouldSave: true,\n          aiResponse: cleanResponse,\n          toDoList: saveData.data,\n          originalResponse: aiOutput\n        }\n      };\n    }\n  } catch (e) {\n    // JSON parsing failed, continue as normal chat\n  }\n}\n\n// No save command, just return chat response\nreturn {\n  json: {\n    shouldSave: false,\n    aiResponse: aiOutput,\n    toDoList: null\n  }\n};"
+      },
+      "id": "861073e2-4776-4825-a540-a8823a1aab31",
+      "name": "CheckSaveCommand",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1648,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Just pass through the chat response\nreturn {\n  json: {\n    output: $input.first().json.aiResponse\n  }\n};"
+      },
+      "id": "14214f4a-a117-4983-ba8a-7a4b396dbe1f",
+      "name": "PassChatResponse",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare ToDoList data for database insert\nconst input = $input.first().json;\nconst toDoList = input.toDoList;\nconst now = new Date().toISOString();\n\nreturn {\n  json: {\n    Name: toDoList.listName || 'Neue ToDo-Liste',\n    Description: toDoList.listDescription || '',\n    Type: toDoList.listType || 1,\n    IdentityId: null,\n    CreatedOn: now,\n    ModifiedOn: now,\n    items: toDoList.items || [],\n    aiResponse: input.aiResponse\n  }\n};"
+      },
+      "id": "b311820e-4983-4218-a1d8-39d65e1fff12",
+      "name": "PrepareToDoList",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "save-condition",
+              "leftValue": "={{ $json.shouldSave }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "280c5baf-cad3-4f44-8f51-7c709fcb9fc6",
+      "name": "ShouldSave?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1488,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "app",
+          "mode": ""
+        },
+        "table": {
+          "__rl": true,
+          "value": "ToDoLists",
+          "mode": "list",
+          "cachedResultName": "ToDoLists"
+        },
+        "columns": {
+          "0": "N",
+          "1": "a",
+          "2": "m",
+          "3": "e",
+          "4": ",",
+          "5": " ",
+          "6": "D",
+          "7": "e",
+          "8": "s",
+          "9": "c",
+          "10": "r",
+          "11": "i",
+          "12": "p",
+          "13": "t",
+          "14": "i",
+          "15": "o",
+          "16": "n",
+          "17": ",",
+          "18": " ",
+          "19": "T",
+          "20": "y",
+          "21": "p",
+          "22": "e",
+          "23": ",",
+          "24": " ",
+          "25": "I",
+          "26": "d",
+          "27": "e",
+          "28": "n",
+          "29": "t",
+          "30": "i",
+          "31": "t",
+          "32": "y",
+          "33": "I",
+          "34": "d",
+          "35": ",",
+          "36": " ",
+          "37": "C",
+          "38": "r",
+          "39": "e",
+          "40": "a",
+          "41": "t",
+          "42": "e",
+          "43": "d",
+          "44": "O",
+          "45": "n",
+          "46": ",",
+          "47": " ",
+          "48": "M",
+          "49": "o",
+          "50": "d",
+          "51": "i",
+          "52": "f",
+          "53": "i",
+          "54": "e",
+          "55": "d",
+          "56": "O",
+          "57": "n",
+          "mappingMode": "defineBelow",
+          "value": {
+            "Type": "={{ $json.Type }}",
+            "IdentityId": "={{ $('SetInputData').item.json.identityId }}",
+            "Name": "={{ $json.Name }}",
+            "Description": "={{ $json.Description }}",
+            "CreatedOn": "={{ $json.CreatedOn }}",
+            "ModifiedOn": "={{ $json.ModifiedOn }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "IdentityId",
+              "displayName": "IdentityId",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CreatedOn",
+              "displayName": "CreatedOn",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ModifiedOn",
+              "displayName": "ModifiedOn",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "02daa5a0-aef9-4cf1-aa11-61c2297c31c9",
+      "name": "InsertToDoList",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        -1056,
+        -80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "UmklO3rWF8iVJRpE",
+          "name": "SEeAIToDoListDb"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the list ID and prepare items for insert\nconst listResult = $('InsertToDoList').first().json;\nconst prepareResult = $('PrepareToDoList').first().json;\n\nconst listId = listResult.Id;\nconst items = prepareResult.items;\nconst now = new Date().toISOString();\n\nif (!items || items.length === 0) {\n  return [];\n}\n\n// Return items with list reference\nreturn items.map(item => ({\n  json: {\n    ToDoListId: listId,\n    Name: item.name,\n    Description: item.description || '',\n    Priority: item.priority || 2,\n    State: 1, // Open\n    DueDate: item.dueDate || null,\n    CompletedOn: null,\n    IsCompleted: false,\n    CreatedOn: now,\n    ModifiedOn: now\n  }\n}));"
+      },
+      "id": "071efac4-6026-4df3-8972-e39cf9408e71",
+      "name": "PrepareToDoItems",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "app",
+          "mode": ""
+        },
+        "table": {
+          "__rl": true,
+          "value": "ToDoItems",
+          "mode": "list",
+          "cachedResultName": "ToDoItems"
+        },
+        "columns": {
+          "0": "T",
+          "1": "o",
+          "2": "D",
+          "3": "o",
+          "4": "L",
+          "5": "i",
+          "6": "s",
+          "7": "t",
+          "8": "I",
+          "9": "d",
+          "10": ",",
+          "11": " ",
+          "12": "N",
+          "13": "a",
+          "14": "m",
+          "15": "e",
+          "16": ",",
+          "17": " ",
+          "18": "D",
+          "19": "e",
+          "20": "s",
+          "21": "c",
+          "22": "r",
+          "23": "i",
+          "24": "p",
+          "25": "t",
+          "26": "i",
+          "27": "o",
+          "28": "n",
+          "29": ",",
+          "30": " ",
+          "31": "P",
+          "32": "r",
+          "33": "i",
+          "34": "o",
+          "35": "r",
+          "36": "i",
+          "37": "t",
+          "38": "y",
+          "39": ",",
+          "40": " ",
+          "41": "S",
+          "42": "t",
+          "43": "a",
+          "44": "t",
+          "45": "e",
+          "46": ",",
+          "47": " ",
+          "48": "D",
+          "49": "u",
+          "50": "e",
+          "51": "D",
+          "52": "a",
+          "53": "t",
+          "54": "e",
+          "55": ",",
+          "56": " ",
+          "57": "C",
+          "58": "o",
+          "59": "m",
+          "60": "p",
+          "61": "l",
+          "62": "e",
+          "63": "t",
+          "64": "e",
+          "65": "d",
+          "66": "O",
+          "67": "n",
+          "68": ",",
+          "69": " ",
+          "70": "I",
+          "71": "s",
+          "72": "C",
+          "73": "o",
+          "74": "m",
+          "75": "p",
+          "76": "l",
+          "77": "e",
+          "78": "t",
+          "79": "e",
+          "80": "d",
+          "81": ",",
+          "82": " ",
+          "83": "C",
+          "84": "r",
+          "85": "e",
+          "86": "a",
+          "87": "t",
+          "88": "e",
+          "89": "d",
+          "90": "O",
+          "91": "n",
+          "92": ",",
+          "93": " ",
+          "94": "M",
+          "95": "o",
+          "96": "d",
+          "97": "i",
+          "98": "f",
+          "99": "i",
+          "100": "e",
+          "101": "d",
+          "102": "O",
+          "103": "n",
+          "mappingMode": "defineBelow",
+          "value": {
+            "IsCompleted": "={{ $json.IsCompleted }}",
+            "ToDoListId": "={{ $json.ToDoListId }}",
+            "Name": "={{ $json.Name }}",
+            "Description": "={{ $json.Description }}",
+            "Priority": "={{ $json.Priority }}",
+            "State": "={{ $json.State }}",
+            "DueDate": "={{ $json.DueDate }}",
+            "CompletedOn": "={{ $json.CompletedOn }}",
+            "CreatedOn": "={{ $json.CreatedOn }}",
+            "ModifiedOn": "={{ $json.ModifiedOn }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ToDoListId",
+              "displayName": "ToDoListId",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "State",
+              "displayName": "State",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DueDate",
+              "displayName": "DueDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CompletedOn",
+              "displayName": "CompletedOn",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "IsCompleted",
+              "displayName": "IsCompleted",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CreatedOn",
+              "displayName": "CreatedOn",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ModifiedOn",
+              "displayName": "ModifiedOn",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0b9d605b-0087-4d5b-8322-02fffad8867d",
+      "name": "InsertToDoItems",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        -608,
+        -80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "UmklO3rWF8iVJRpE",
+          "name": "SEeAIToDoListDb"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build final response after save\nconst listResult = $('InsertToDoList').first().json;\nconst itemsResult = $('InsertToDoItems').all();\nconst prepareResult = $('PrepareToDoList').first().json;\n\nconst response = prepareResult.aiResponse + \n  '\\n\\n✅ **Liste wurde gespeichert!**\\n' +\n  '- Listen-ID: ' + listResult.Id + '\\n' +\n  '- Anzahl Aufgaben: ' + itemsResult.length;\n\nreturn {\n  json: {\n    output: response\n  }\n};"
+      },
+      "id": "158b635d-bd23-44fc-8fbd-2f5dc5cb2d51",
+      "name": "BuildSaveResponse",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1984,
+        272
+      ],
+      "id": "73cdd937-6e35-43f5-890e-45f4f6125b7d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "fNWhjPxGUbcucLOv",
+          "name": "OpenAiGeGe"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "CheckSaveCommand",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatMemory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "SetInputData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetInputData": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "CheckSaveCommand": {
+      "main": [
+        [
+          {
+            "node": "ShouldSave?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepareToDoList": {
+      "main": [
+        [
+          {
+            "node": "InsertToDoList",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ShouldSave?": {
+      "main": [
+        [
+          {
+            "node": "PrepareToDoList",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PassChatResponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "InsertToDoList": {
+      "main": [
+        [
+          {
+            "node": "PrepareToDoItems",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepareToDoItems": {
+      "main": [
+        [
+          {
+            "node": "InsertToDoItems",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "InsertToDoItems": {
+      "main": [
+        [
+          {
+            "node": "BuildSaveResponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "7718bc1f-bc55-4318-8cc0-f4ceb46db45f",
+  "activeVersionId": "5754fa1a-341d-498e-a26b-f03b12dc6fe8",
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2025-12-04T16:02:38.064Z",
+      "createdAt": "2025-12-04T16:02:38.064Z",
+      "role": "workflow:owner",
+      "workflowId": "8U81PxALkqAWXcUk",
+      "projectId": "NGVmW0kzxTFQBNsK"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-03-01T22:21:25.000Z",
+    "createdAt": "2026-03-01T22:20:38.792Z",
+    "versionId": "5754fa1a-341d-498e-a26b-f03b12dc6fe8",
+    "workflowId": "8U81PxALkqAWXcUk",
+    "nodes": [
+      {
+        "parameters": {
+          "options": {}
+        },
+        "id": "08526b62-fe5f-4ac6-ac52-4ab21a88dfca",
+        "name": "Chat Trigger",
+        "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -2416,
+          -320
+        ],
+        "webhookId": "todo-agent-chat"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Aktuelle Zeit: {{ $now }}\nidentityId: {{ $json.identityId ?? 0 }}\n\n{{ $json.chatInput }}",
+          "options": {
+            "systemMessage": "=Du bist ein freundlicher ToDo-Listen Assistent. Deine Aufgabe ist es, dem Benutzer zu helfen, Aufgaben zu sammeln und zu organisieren.\n\n**Deine Fähigkeiten:**\n1. Aufgaben aus dem Gespräch erkennen und merken\n2. Prioritäten verstehen (Low=1, Medium=2, High=3) Default= 2\n3. Fälligkeitsdaten erkennen (nicht unbedingt erforderlich)\n4. Den Typ der Liste erkennen (Private=1, Business=2) Default=Private\n\n**Gesprächsführung:**\n- Frage ob du eine Vorschlag machen sollst\n- Wenn du einen Vorschlag machst, dann bitte mit den Tätigkeiten und kurze Beschreibungen\n- Frage nach Details zu Aufgaben wenn nötig\n- Fasse zwischendurch zusammen welche Aufgaben du gesammelt hast\n- Frage nach Priorität und Fälligkeitsdatum wenn nicht angegeben\n- Sei hilfsbereit und freundlich\n\n**Darstellung:**\nWenn du die Aufgabenliste anzeigst, dann wähle die Form:\n\n* Listenname\n - Aufgabe 1\n - Aufgabe 2\n - ...\n - Aufgabe n\n\n**WICHTIG - Speicher-Befehl:**\nWenn der Benutzer sagt \"Liste speichern\", \"abspeichern\", \"speichern\", \"fertig\", \"übernehmen\" oder ähnliches:\n1. Antworte mit einer Zusammenfassung\n2. Füge am ENDE deiner Antwort einen JSON-Block ein mit genau diesem Format:\n\n```json\n{\n  \"action\":\"SAVE_TODO_LIST\",\n  \"data\":{\n    \"listName\":\"Name der Liste\",\n    \"listDescription\":\"Beschreibung\",\n    \"listType\":1,\n    \"items\": [{\"name\":\"Aufgabe\",\"description\":\"Details\",\"priority\":2,\"dueDate\":\"2025-12-31\"}]}}\n```\n\nDer JSON-Block muss:\n- Am Ende der Nachricht stehen\n- action = \"SAVE_TODO_LIST\" enthalten\n- Alle gesammelten Aufgaben im items Array haben\n- priority als Zahl (1=Low, 2=Medium, 3=High)\n- listType als Zahl (1=Private, 2=Business)\n- dueDate im Format YYYY-MM-DD oder null\n\nOhne Speicher-Befehl: Führe einfach das Gespräch weiter, sammle Aufgaben, stelle Fragen."
+          }
+        },
+        "id": "5e67d001-d1e7-4f7e-922a-cd8fbefc87f6",
+        "name": "AI Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 1.6,
+        "position": [
+          -1984,
+          32
+        ]
+      },
+      {
+        "parameters": {},
+        "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+        "typeVersion": 1.3,
+        "position": [
+          -1888,
+          400
+        ],
+        "id": "305cb3d8-da3c-4ad9-947e-2789c2a80a1d",
+        "name": "ChatMemory",
+        "credentials": {
+          "postgres": {
+            "id": "iYMqy2OzuA3ajmSK",
+            "name": "Postgres"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "toDoChat",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -2416,
+          32
+        ],
+        "id": "39ac45c3-5c41-4690-8d4c-551e2c244388",
+        "name": "Webhook",
+        "webhookId": "722d7bb3-63fd-4092-8ef7-89a2722e3a1b"
+      },
+      {
+        "parameters": {
+          "jsCode": "function generateGuid() {\n    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {\n        const r = Math.random() * 16 | 0;\n        const v = c === 'x' ? r : (r & 0x3 | 0x8);\n        return v.toString(16);\n    });\n}\n\nreturn {\n  \"guid\": generateGuid(),\n  \"sessionId\": $input?.first()?.json?.body?.sessionId ?? generateGuid(),\n  \"chatInput\": $input?.first()?.json?.body?.message ?? '',\n  \"identityId\": $input.first().json?.body?.identityId || 0\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -2208,
+          32
+        ],
+        "id": "16519c0a-16da-44f3-af45-9fc9eba4b37d",
+        "name": "SetInputData"
+      },
+      {
+        "parameters": {
+          "model": "deepseek-v3.1:671b-cloud",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+        "typeVersion": 1,
+        "position": [
+          -2176,
+          384
+        ],
+        "id": "098bb6c8-f343-48e5-aaca-9562966e0985",
+        "name": "Ollama Chat Model",
+        "credentials": {
+          "ollamaApi": {
+            "id": "fCEisapDHuJhr5FV",
+            "name": "Ollama"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Check if AI response contains save command\nconst aiOutput = $input.first().json.output || $input.first().json.text || '';\n\n// Look for the JSON save command in the response\nconst jsonMatch = aiOutput.match(/```json\\s*\\n?({[\\s\\S]*?\"action\"\\s*:\\s*\"SAVE_TODO_LIST\"[\\s\\S]*?})\\s*\\n?```/);\n\nif (jsonMatch) {\n  try {\n    const saveData = JSON.parse(jsonMatch[1]);\n    \n    if (saveData.action === 'SAVE_TODO_LIST' && saveData.data) {\n      // Clean the response text (remove JSON block for display)\n      const cleanResponse = aiOutput.replace(/```json[\\s\\S]*?```/g, '').trim();\n      \n      return {\n        json: {\n          shouldSave: true,\n          aiResponse: cleanResponse,\n          toDoList: saveData.data,\n          originalResponse: aiOutput\n        }\n      };\n    }\n  } catch (e) {\n    // JSON parsing failed, continue as normal chat\n  }\n}\n\n// No save command, just return chat response\nreturn {\n  json: {\n    shouldSave: false,\n    aiResponse: aiOutput,\n    toDoList: null\n  }\n};"
+        },
+        "id": "861073e2-4776-4825-a540-a8823a1aab31",
+        "name": "CheckSaveCommand",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1648,
+          32
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Just pass through the chat response\nreturn {\n  json: {\n    output: $input.first().json.aiResponse\n  }\n};"
+        },
+        "id": "14214f4a-a117-4983-ba8a-7a4b396dbe1f",
+        "name": "PassChatResponse",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1280,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Prepare ToDoList data for database insert\nconst input = $input.first().json;\nconst toDoList = input.toDoList;\nconst now = new Date().toISOString();\n\nreturn {\n  json: {\n    Name: toDoList.listName || 'Neue ToDo-Liste',\n    Description: toDoList.listDescription || '',\n    Type: toDoList.listType || 1,\n    IdentityId: null,\n    CreatedOn: now,\n    ModifiedOn: now,\n    items: toDoList.items || [],\n    aiResponse: input.aiResponse\n  }\n};"
+        },
+        "id": "b311820e-4983-4218-a1d8-39d65e1fff12",
+        "name": "PrepareToDoList",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1280,
+          -80
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "save-condition",
+                "leftValue": "={{ $json.shouldSave }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "280c5baf-cad3-4f44-8f51-7c709fcb9fc6",
+        "name": "ShouldSave?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          -1488,
+          32
+        ]
+      },
+      {
+        "parameters": {
+          "schema": {
+            "__rl": true,
+            "value": "app",
+            "mode": ""
+          },
+          "table": {
+            "__rl": true,
+            "value": "ToDoLists",
+            "mode": "list",
+            "cachedResultName": "ToDoLists"
+          },
+          "columns": {
+            "0": "N",
+            "1": "a",
+            "2": "m",
+            "3": "e",
+            "4": ",",
+            "5": " ",
+            "6": "D",
+            "7": "e",
+            "8": "s",
+            "9": "c",
+            "10": "r",
+            "11": "i",
+            "12": "p",
+            "13": "t",
+            "14": "i",
+            "15": "o",
+            "16": "n",
+            "17": ",",
+            "18": " ",
+            "19": "T",
+            "20": "y",
+            "21": "p",
+            "22": "e",
+            "23": ",",
+            "24": " ",
+            "25": "I",
+            "26": "d",
+            "27": "e",
+            "28": "n",
+            "29": "t",
+            "30": "i",
+            "31": "t",
+            "32": "y",
+            "33": "I",
+            "34": "d",
+            "35": ",",
+            "36": " ",
+            "37": "C",
+            "38": "r",
+            "39": "e",
+            "40": "a",
+            "41": "t",
+            "42": "e",
+            "43": "d",
+            "44": "O",
+            "45": "n",
+            "46": ",",
+            "47": " ",
+            "48": "M",
+            "49": "o",
+            "50": "d",
+            "51": "i",
+            "52": "f",
+            "53": "i",
+            "54": "e",
+            "55": "d",
+            "56": "O",
+            "57": "n",
+            "mappingMode": "defineBelow",
+            "value": {
+              "Type": "={{ $json.Type }}",
+              "IdentityId": "={{ $('SetInputData').item.json.identityId }}",
+              "Name": "={{ $json.Name }}",
+              "Description": "={{ $json.Description }}",
+              "CreatedOn": "={{ $json.CreatedOn }}",
+              "ModifiedOn": "={{ $json.ModifiedOn }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Id",
+                "displayName": "Id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Description",
+                "displayName": "Description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Type",
+                "displayName": "Type",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "IdentityId",
+                "displayName": "IdentityId",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "CreatedOn",
+                "displayName": "CreatedOn",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "dateTime",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "ModifiedOn",
+                "displayName": "ModifiedOn",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "dateTime",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "02daa5a0-aef9-4cf1-aa11-61c2297c31c9",
+        "name": "InsertToDoList",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.4,
+        "position": [
+          -1056,
+          -80
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "UmklO3rWF8iVJRpE",
+            "name": "SEeAIToDoListDb"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Get the list ID and prepare items for insert\nconst listResult = $('InsertToDoList').first().json;\nconst prepareResult = $('PrepareToDoList').first().json;\n\nconst listId = listResult.Id;\nconst items = prepareResult.items;\nconst now = new Date().toISOString();\n\nif (!items || items.length === 0) {\n  return [];\n}\n\n// Return items with list reference\nreturn items.map(item => ({\n  json: {\n    ToDoListId: listId,\n    Name: item.name,\n    Description: item.description || '',\n    Priority: item.priority || 2,\n    State: 1, // Open\n    DueDate: item.dueDate || null,\n    CompletedOn: null,\n    IsCompleted: false,\n    CreatedOn: now,\n    ModifiedOn: now\n  }\n}));"
+        },
+        "id": "071efac4-6026-4df3-8972-e39cf9408e71",
+        "name": "PrepareToDoItems",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -832,
+          -80
+        ]
+      },
+      {
+        "parameters": {
+          "schema": {
+            "__rl": true,
+            "value": "app",
+            "mode": ""
+          },
+          "table": {
+            "__rl": true,
+            "value": "ToDoItems",
+            "mode": "list",
+            "cachedResultName": "ToDoItems"
+          },
+          "columns": {
+            "0": "T",
+            "1": "o",
+            "2": "D",
+            "3": "o",
+            "4": "L",
+            "5": "i",
+            "6": "s",
+            "7": "t",
+            "8": "I",
+            "9": "d",
+            "10": ",",
+            "11": " ",
+            "12": "N",
+            "13": "a",
+            "14": "m",
+            "15": "e",
+            "16": ",",
+            "17": " ",
+            "18": "D",
+            "19": "e",
+            "20": "s",
+            "21": "c",
+            "22": "r",
+            "23": "i",
+            "24": "p",
+            "25": "t",
+            "26": "i",
+            "27": "o",
+            "28": "n",
+            "29": ",",
+            "30": " ",
+            "31": "P",
+            "32": "r",
+            "33": "i",
+            "34": "o",
+            "35": "r",
+            "36": "i",
+            "37": "t",
+            "38": "y",
+            "39": ",",
+            "40": " ",
+            "41": "S",
+            "42": "t",
+            "43": "a",
+            "44": "t",
+            "45": "e",
+            "46": ",",
+            "47": " ",
+            "48": "D",
+            "49": "u",
+            "50": "e",
+            "51": "D",
+            "52": "a",
+            "53": "t",
+            "54": "e",
+            "55": ",",
+            "56": " ",
+            "57": "C",
+            "58": "o",
+            "59": "m",
+            "60": "p",
+            "61": "l",
+            "62": "e",
+            "63": "t",
+            "64": "e",
+            "65": "d",
+            "66": "O",
+            "67": "n",
+            "68": ",",
+            "69": " ",
+            "70": "I",
+            "71": "s",
+            "72": "C",
+            "73": "o",
+            "74": "m",
+            "75": "p",
+            "76": "l",
+            "77": "e",
+            "78": "t",
+            "79": "e",
+            "80": "d",
+            "81": ",",
+            "82": " ",
+            "83": "C",
+            "84": "r",
+            "85": "e",
+            "86": "a",
+            "87": "t",
+            "88": "e",
+            "89": "d",
+            "90": "O",
+            "91": "n",
+            "92": ",",
+            "93": " ",
+            "94": "M",
+            "95": "o",
+            "96": "d",
+            "97": "i",
+            "98": "f",
+            "99": "i",
+            "100": "e",
+            "101": "d",
+            "102": "O",
+            "103": "n",
+            "mappingMode": "defineBelow",
+            "value": {
+              "IsCompleted": "={{ $json.IsCompleted }}",
+              "ToDoListId": "={{ $json.ToDoListId }}",
+              "Name": "={{ $json.Name }}",
+              "Description": "={{ $json.Description }}",
+              "Priority": "={{ $json.Priority }}",
+              "State": "={{ $json.State }}",
+              "DueDate": "={{ $json.DueDate }}",
+              "CompletedOn": "={{ $json.CompletedOn }}",
+              "CreatedOn": "={{ $json.CreatedOn }}",
+              "ModifiedOn": "={{ $json.ModifiedOn }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "Id",
+                "displayName": "Id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Description",
+                "displayName": "Description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "ToDoListId",
+                "displayName": "ToDoListId",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Priority",
+                "displayName": "Priority",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "State",
+                "displayName": "State",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "DueDate",
+                "displayName": "DueDate",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "dateTime",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "CompletedOn",
+                "displayName": "CompletedOn",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "dateTime",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "IsCompleted",
+                "displayName": "IsCompleted",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "boolean",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "CreatedOn",
+                "displayName": "CreatedOn",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "dateTime",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "ModifiedOn",
+                "displayName": "ModifiedOn",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "dateTime",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "0b9d605b-0087-4d5b-8322-02fffad8867d",
+        "name": "InsertToDoItems",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.4,
+        "position": [
+          -608,
+          -80
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "UmklO3rWF8iVJRpE",
+            "name": "SEeAIToDoListDb"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Build final response after save\nconst listResult = $('InsertToDoList').first().json;\nconst itemsResult = $('InsertToDoItems').all();\nconst prepareResult = $('PrepareToDoList').first().json;\n\nconst response = prepareResult.aiResponse + \n  '\\n\\n✅ **Liste wurde gespeichert!**\\n' +\n  '- Listen-ID: ' + listResult.Id + '\\n' +\n  '- Anzahl Aufgaben: ' + itemsResult.length;\n\nreturn {\n  json: {\n    output: response\n  }\n};"
+        },
+        "id": "158b635d-bd23-44fc-8fbd-2f5dc5cb2d51",
+        "name": "BuildSaveResponse",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -400,
+          -80
+        ]
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-4.1-mini",
+            "mode": "list",
+            "cachedResultName": "gpt-4.1-mini"
+          },
+          "responsesApiEnabled": false,
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.3,
+        "position": [
+          -1984,
+          272
+        ],
+        "id": "73cdd937-6e35-43f5-890e-45f4f6125b7d",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "fNWhjPxGUbcucLOv",
+            "name": "OpenAiGeGe"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Chat Trigger": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "CheckSaveCommand",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ChatMemory": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "SetInputData",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SetInputData": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ollama Chat Model": {
+        "ai_languageModel": [
+          []
+        ]
+      },
+      "CheckSaveCommand": {
+        "main": [
+          [
+            {
+              "node": "ShouldSave?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "PrepareToDoList": {
+        "main": [
+          [
+            {
+              "node": "InsertToDoList",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ShouldSave?": {
+        "main": [
+          [
+            {
+              "node": "PrepareToDoList",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "PassChatResponse",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "InsertToDoList": {
+        "main": [
+          [
+            {
+              "node": "PrepareToDoItems",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "PrepareToDoItems": {
+        "main": [
+          [
+            {
+              "node": "InsertToDoItems",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "InsertToDoItems": {
+        "main": [
+          [
+            {
+              "node": "BuildSaveResponse",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Gerhard Gehrer",
+    "name": "Version 5754fa1a",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": []
+}

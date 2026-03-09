@@ -1,0 +1,8 @@
+﻿{
+  "profiles": {
+    "AIToDoGenerator.CodeGenApp": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    }
+  }
+}
