@@ -1,0 +1,160 @@
+{
+  "updatedAt": "2026-03-09T12:05:54.937Z",
+  "createdAt": "2026-03-08T22:01:16.703Z",
+  "id": "P0MoHhCGyVjZNjMk",
+  "name": "CreditCheckerAgent",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Du bist ein Kreditberater. Nutze das CheckCredit-Tool um Kreditanfragen \nzu prüfen. Frage den Nutzer nach allen nötigen Informationen bevor du \ndas Tool aufrufst."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "ff38d6f6-8aba-4b8a-be7d-744994f044d8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1f108862-1ab7-4d05-9241-1c3722efd019",
+      "name": "Chat",
+      "webhookId": "fe4f8ed1-8e9b-4471-9e83-2ba333cf6bb3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        224
+      ],
+      "id": "7701f178-97f9-4f22-ae6e-f0529c9ffe6e",
+      "name": "ChatModel",
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:5250/mcp",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        224
+      ],
+      "id": "4da4e650-23c4-4950-b9a4-3905efcaffe1",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        368
+      ],
+      "id": "0e271659-3bcd-4ffd-84e5-28aabcb5ddc6",
+      "name": "Simple Memory"
+    }
+  ],
+  "connections": {
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatModel": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "50b68631-283a-4f66-8dc4-f61b0330e48e",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-08T22:01:16.706Z",
+      "createdAt": "2026-03-08T22:01:16.706Z",
+      "role": "workflow:owner",
+      "workflowId": "P0MoHhCGyVjZNjMk",
+      "projectId": "NGVmW0kzxTFQBNsK"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
