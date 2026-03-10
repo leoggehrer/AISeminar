@@ -1,0 +1,25 @@
+# Creadentials
+
+## OpenAI API Key
+
+**Name**: Seminar
+
+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
+
+## Google API Key
+
+**Name**: n8n
+**Email**: seminar.htlleonding.ac.at
+
+{
+    "web":
+    {
+        "client_id": "391154952406-plbpbi9h9a9g6j1mrjas0o9ehi0nktp9.apps.googleusercontent.com",
+        "project_id": "stately-atrium-489813-p9",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri":"https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_secret": "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",
+        "redirect_uris": ["http://localhost:5678/rest/oauth2-credential/callback"]
+    }
+}
