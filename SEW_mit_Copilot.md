@@ -191,7 +191,3 @@ GitHub Copilot  +  copilot-instructions.md
 1. `copilot-instructions.md` liegt unter `.github/` und wird automatisch eingelesen
 2. Konventionen, Architektur und Verbote klar und konkret formulieren
 3. Die Datei regelmäßig wie Code reviewen und aktualisieren
-
----
-
-*Erstellt mit GitHub Copilot & Claude · 2026*
