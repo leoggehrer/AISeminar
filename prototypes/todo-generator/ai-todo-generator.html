@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskMind – KI ToDo Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Mulish:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0d0f14;
+  --bg2:      #13161e;
+  --surface:  #1a1e2a;
+  --surface2: #20253380;
+  --border:   #2a3045;
+  --border2:  #3a4560;
+  --ink:      #eef0f8;
+  --ink2:     #a8b0cc;
+  --muted:    #5a6480;
+
+  --gold:     #f0b429;
+  --gold2:    #ffd166;
+  --gold-dim: rgba(240,180,41,0.12);
+  --gold-glow:rgba(240,180,41,0.25);
+
+  --green:    #06d6a0;
+  --green-dim:rgba(6,214,160,0.1);
+  --red:      #ff6b8a;
+  --red-dim:  rgba(255,107,138,0.1);
+  --blue:     #4ea8de;
+  --blue-dim: rgba(78,168,222,0.1);
+
+  --radius:   12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Mulish', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 10;
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: rgba(13,15,20,0.85);
+  backdrop-filter: blur(12px);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 0 16px var(--gold-glow);
+}
+
+.logo-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.logo-name span { color: var(--gold); }
+
+.hdr-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hdr-lists-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.hdr-lists-count strong { color: var(--gold); }
+
+.ai-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gold-dim);
+  border: 1px solid rgba(240,180,41,0.3);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--gold2);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.ai-dot {
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--gold);
+}
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── MAIN LAYOUT ── */
+.main {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  height: calc(100vh - 61px);
+  overflow: hidden;
+}
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--bg2);
+}
+
+.left-panel::-webkit-scrollbar { width: 3px; }
+.left-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* Hero input area */
+.input-hero {
+  padding: 28px 26px 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.input-hero-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin-bottom: 5px;
+}
+
+.input-hero-sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 300;
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+/* Big description input */
+.desc-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.desc-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  color: var(--ink);
+  font-family: 'Mulish', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  outline: none;
+  resize: none;
+  min-height: 90px;
+  line-height: 1.6;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.desc-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-dim), 0 0 24px var(--gold-glow);
+}
+
+.desc-input::placeholder { color: var(--muted); font-style: italic; font-weight: 300; }
+
+/* Options row */
+.options-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.opt-group { display: flex; flex-direction: column; gap: 5px; }
+
+.opt-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.opt-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 11px;
+  color: var(--ink2);
+  font-family: 'Mulish', sans-serif;
+  font-size: 0.8rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.opt-select:focus { border-color: var(--gold); }
+.opt-select option { background: #1a1e2a; }
+
+/* Generate button */
+.btn-generate {
+  width: 100%;
+  background: var(--gold);
+  color: #0d0f14;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 20px;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  box-shadow: 0 4px 20px var(--gold-glow);
+}
+
+.btn-generate:hover { background: var(--gold2); box-shadow: 0 6px 28px rgba(240,180,41,0.4); transform: translateY(-1px); }
+.btn-generate:active { transform: translateY(0); }
+.btn-generate:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.gen-spin {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(13,15,20,0.3);
+  border-top-color: #0d0f14;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Webhook */
+.webhook-section {
+  padding: 16px 26px;
+  border-bottom: 1px solid var(--border);
+}
+
+.webhook-section label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.webhook-section input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  outline: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.webhook-section input:focus { border-color: var(--gold); color: var(--ink2); }
+.webhook-section input::placeholder { color: var(--muted); opacity: 0.5; }
+
+/* List history */
+.history-section {
+  padding: 16px 26px;
+  flex: 1;
+}
+
+.history-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.56rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.history-list { display: flex; flex-direction: column; gap: 6px; }
+
+.history-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.history-item:hover { border-color: var(--gold); background: var(--gold-dim); }
+.history-item.active { border-color: var(--gold); background: var(--gold-dim); box-shadow: 0 0 0 1px var(--gold-dim); }
+
+.hist-info { flex: 1; min-width: 0; }
+
+.hist-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.hist-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+}
+
+.hist-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.hist-frac {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.hist-bar {
+  width: 48px;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.hist-bar-fill {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.btn-del-list {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-del-list:hover { color: var(--red); }
+
+/* ── RIGHT PANEL ── */
+.right-panel {
+  overflow-y: auto;
+  padding: 30px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.right-panel::-webkit-scrollbar { width: 4px; }
+.right-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Empty state */
+.empty-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  opacity: 0.5;
+  user-select: none;
+}
+
+.empty-icon { font-size: 3rem; filter: grayscale(0.5); }
+
+.empty-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink2);
+  letter-spacing: -0.02em;
+}
+
+.empty-sub { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+
+/* List view */
+.list-view { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.list-view-header { margin-bottom: 24px; }
+
+.list-view-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+  line-height: 1.1;
+}
+
+.list-view-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.lvm-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.lvm-chip.gold { border-color: rgba(240,180,41,0.4); color: var(--gold); background: var(--gold-dim); }
+
+.progress-section {
+  margin-bottom: 28px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.progress-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.progress-bar {
+  height: 6px;
+  background: var(--surface);
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 0 8px var(--gold-glow);
+}
+
+/* Generating animation */
+.generating-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 0;
+}
+
+.gen-line {
+  height: 44px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.gen-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, var(--gold-dim) 50%, transparent 100%);
+  animation: shimmer 1.5s ease-in-out infinite;
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+.gen-line:nth-child(2) { width: 85%; animation-delay: 0.1s; }
+.gen-line:nth-child(3) { width: 92%; animation-delay: 0.2s; }
+.gen-line:nth-child(4) { width: 78%; animation-delay: 0.3s; }
+.gen-line:nth-child(5) { width: 88%; animation-delay: 0.4s; }
+
+/* ToDo items */
+.todos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 16px;
+  transition: all 0.2s;
+  animation: todoIn 0.3s ease both;
+  cursor: default;
+}
+
+.todo-item:hover { border-color: var(--border2); background: var(--bg2); }
+.todo-item.done { opacity: 0.45; }
+.todo-item.done .todo-text { text-decoration: line-through; color: var(--muted); }
+
+@keyframes todoIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
+
+/* Checkbox */
+.todo-check {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border2);
+  border-radius: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  margin-top: 1px;
+  background: transparent;
+}
+
+.todo-check:hover { border-color: var(--gold); background: var(--gold-dim); }
+.todo-check.checked { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 8px var(--gold-glow); }
+.todo-check.checked::after { content: '✓'; color: #0d0f14; font-size: 0.7rem; font-weight: 700; }
+
+.todo-body { flex: 1; min-width: 0; }
+
+.todo-text {
+  font-size: 0.88rem;
+  color: var(--ink);
+  line-height: 1.45;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.todo-note {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.todo-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.prio-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.52rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.prio-high   { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(255,107,138,0.3); }
+.prio-medium { background: rgba(240,180,41,0.1); color: var(--gold); border: 1px solid rgba(240,180,41,0.3); }
+.prio-low    { background: var(--green-dim); color: var(--green); border: 1px solid rgba(6,214,160,0.3); }
+
+.btn-del-todo {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 2px;
+  transition: color 0.15s;
+  opacity: 0;
+}
+
+.todo-item:hover .btn-del-todo { opacity: 1; }
+.btn-del-todo:hover { color: var(--red); }
+
+/* Category divider */
+.cat-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 10px;
+}
+
+.cat-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.cat-line { flex: 1; height: 1px; background: var(--border); }
+
+/* Actions bar */
+.actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.actions-left {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+
+.actions-left strong { color: var(--gold); }
+
+.actions-right { display: flex; gap: 8px; }
+
+.btn-sm {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 13px;
+  color: var(--ink2);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Mulish', sans-serif;
+}
+
+.btn-sm:hover { border-color: var(--border2); color: var(--ink); }
+.btn-sm.danger:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">✦</div>
+    <div class="logo-name">Task<span>Mind</span></div>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-lists-count">
+      <strong id="hdrCount">0</strong> Listen
+    </div>
+    <div class="ai-badge"><div class="ai-dot"></div>KI aktiv</div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- LEFT -->
+  <div class="left-panel">
+
+    <div class="input-hero">
+      <div class="input-hero-label">Was planst du?</div>
+      <div class="input-hero-sub">Beschreibe dein Vorhaben — die KI erstellt passende Aufgaben.</div>
+
+      <div class="desc-wrap">
+        <textarea class="desc-input" id="descInput" placeholder="z.B. „Ich möchte meinen Urlaub nach Japan planen" oder „Website für mein Café launchen"…" rows="4"></textarea>
+      </div>
+
+      <div class="options-row">
+        <div class="opt-group">
+          <div class="opt-label">Anzahl Aufgaben</div>
+          <select class="opt-select" id="optCount">
+            <option value="5">5 Aufgaben</option>
+            <option value="8" selected>8 Aufgaben</option>
+            <option value="12">12 Aufgaben</option>
+            <option value="15">15 Aufgaben</option>
+          </select>
+        </div>
+        <div class="opt-group">
+          <div class="opt-label">Detailtiefe</div>
+          <select class="opt-select" id="optDetail">
+            <option value="kurz">Kurz & knapp</option>
+            <option value="mittel" selected>Mittel</option>
+            <option value="detailliert">Detailliert</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-generate" id="genBtn" onclick="generateList()">
+        <div class="gen-spin" id="genSpin"></div>
+        <span id="genLabel">✦ ToDo-Liste generieren</span>
+      </button>
+    </div>
+
+    <div class="webhook-section">
+      <label>n8n Webhook URL (optional)</label>
+      <input type="text" id="webhookUrl" placeholder="https://your-n8n.cloud/webhook/todo-ai">
+    </div>
+
+    <div class="history-section">
+      <div class="history-title">Meine Listen</div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel" id="rightPanel">
+    <div class="empty-right" id="emptyState">
+      <div class="empty-icon">✦</div>
+      <div class="empty-title">Noch keine Liste</div>
+      <div class="empty-sub">Gib links eine Beschreibung ein<br>und lass die KI deine Aufgaben generieren.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────
+let lists = [];
+let activeLid = null;
+let nextId = 1;
+
+// ─── GENERATE ─────────────────────────────────────────────
+async function generateList() {
+  const desc   = document.getElementById('descInput').value.trim();
+  const count  = parseInt(document.getElementById('optCount').value);
+  const detail = document.getElementById('optDetail').value;
+
+  if (!desc) { alert('Bitte eine Beschreibung eingeben.'); return; }
+
+  const lid = `L-${String(nextId++).padStart(3,'0')}`;
+  const list = { id: lid, description: desc, count, detail, status: 'generating', todos: [], createdAt: new Date() };
+
+  lists.unshift(list);
+  activeLid = lid;
+  setLoading(true);
+  renderHistory();
+  renderRight();
+
+  const webhookUrl = document.getElementById('webhookUrl').value.trim();
+  const payload = { listId: lid, description: desc, count, detail, timestamp: new Date().toISOString() };
+
+  try {
+    let result;
+    if (webhookUrl) {
+      const resp = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      result = await resp.json();
+    } else {
+      await new Promise(r => setTimeout(r, 1800 + Math.random() * 700));
+      result = demoGenerate(desc, count, detail);
+    }
+
+    const l = lists.find(l => l.id === lid);
+    if (l) {
+      l.status = 'ready';
+      l.title  = result.title  || desc.substring(0, 40);
+      l.todos  = (result.todos || []).map((t, i) => ({ ...t, id: `T-${lid}-${i}`, done: false }));
+    }
+  } catch(err) {
+    const l = lists.find(l => l.id === lid);
+    if (l) { l.status = 'error'; l.title = desc.substring(0,40); l.todos = []; }
+  }
+
+  setLoading(false);
+  document.getElementById('descInput').value = '';
+  renderHistory();
+  renderRight();
+}
+
+function setLoading(v) {
+  document.getElementById('genBtn').disabled = v;
+  document.getElementById('genSpin').style.display = v ? 'block' : 'none';
+  document.getElementById('genLabel').textContent = v ? 'KI generiert Aufgaben…' : '✦ ToDo-Liste generieren';
+}
+
+// ─── DEMO GENERATOR ───────────────────────────────────────
+function demoGenerate(desc, count, detail) {
+  const d = desc.toLowerCase();
+
+  // Context detection
+  const contexts = [
+    { keys:['japan','urlaub','reise','trip','ferien'], title: `Reise planen: ${desc.split(' ').slice(0,4).join(' ')}`, cat:'Vorbereitung', todos:[
+      {text:'Reisedaten festlegen & Flüge vergleichen', note:'Früh buchen spart oft 30-50%', priority:'high', category:'Vorbereitung'},
+      {text:'Unterkunft für alle Nächte buchen', note:'Hotels in Japan früh ausgebucht', priority:'high', category:'Vorbereitung'},
+      {text:'Reisepass & Visum prüfen', note:'Gültigkeitsdauer beachten', priority:'high', category:'Dokumente'},
+      {text:'Reisekrankenversicherung abschließen', note:'Inkl. Notfallrückflug', priority:'high', category:'Dokumente'},
+      {text:'JR-Pass bestellen (Zugticket Japan)', note:'Günstiger wenn vorab bestellt', priority:'medium', category:'Vor Ort'},
+      {text:'Reiseroute & Highlights planen', note:'Tokio, Kyoto, Osaka, Hiroshima', priority:'medium', category:'Planung'},
+      {text:'Währung tauschen / Kreditkarte prüfen', note:'Japan ist noch sehr cash-lastig', priority:'medium', category:'Finanzen'},
+      {text:'Packliste erstellen & Koffer packen', note:'Adapterstecker für Japan mitbringen', priority:'low', category:'Vorbereitung'},
+      {text:'Wichtige Apps installieren (Google Maps, Translate)', note:'Offline-Karten herunterladen', priority:'low', category:'Vorbereitung'},
+      {text:'Notfallnummern & Botschaft notieren', note:'Österreichische Botschaft Tokio', priority:'low', category:'Sicherheit'},
+    ]},
+    { keys:['website','webseite','homepage','café','restaurant','shop','laden'], title: `Website launchen: ${desc.split(' ').slice(0,3).join(' ')}`, todos:[
+      {text:'Domain registrieren & Hosting buchen', note:'z.B. Strato, Hostinger, Vercel', priority:'high', category:'Technik'},
+      {text:'Zielgruppe & Kernbotschaft definieren', note:'Was soll Besucher sofort verstehen?', priority:'high', category:'Strategie'},
+      {text:'Wireframes & Struktur skizzieren', note:'Welche Seiten sind nötig?', priority:'high', category:'Design'},
+      {text:'Texte für alle Seiten schreiben', note:'SEO-Keywords einbauen', priority:'high', category:'Inhalt'},
+      {text:'Bilder & Logo vorbereiten', note:'Professionelle Fotos machen lassen', priority:'medium', category:'Design'},
+      {text:'Website bauen (CMS oder Code)', note:'WordPress, Wix oder custom', priority:'medium', category:'Technik'},
+      {text:'Impressum & Datenschutz einbauen', note:'Rechtlich verpflichtend in DE/AT', priority:'high', category:'Rechtliches'},
+      {text:'Mobile-Optimierung testen', note:'70% der Besucher kommen vom Handy', priority:'medium', category:'Technik'},
+      {text:'Google Analytics einrichten', note:'Besucher tracken & verstehen', priority:'low', category:'Marketing'},
+      {text:'Social Media verknüpfen & bewerben', note:'Instagram, Google My Business', priority:'low', category:'Marketing'},
+    ]},
+    { keys:['umzug','wohnung','haus','einziehen'], title: `Umzug organisieren`, todos:[
+      {text:'Umzugstermin mit Vermieter abstimmen', note:'Übergabe-Protokoll vereinbaren', priority:'high', category:'Planung'},
+      {text:'Umzugshelfer / Umzugsfirma organisieren', note:'Freunde fragen oder Firma beauftragen', priority:'high', category:'Planung'},
+      {text:'Kartons & Packmaterial besorgen', note:'Supermarkt oft gratis', priority:'medium', category:'Material'},
+      {text:'Ummeldung beim Einwohnermeldeamt', note:'Innerhalb 2 Wochen nach Einzug', priority:'high', category:'Behörden'},
+      {text:'Adressänderung bei Bank & Versicherungen', note:'Liste aller Vertragspartner erstellen', priority:'high', category:'Behörden'},
+      {text:'Strom, Internet & Gas ummelden', note:'Anbieter wechseln lohnt sich oft', priority:'high', category:'Verträge'},
+      {text:'Möbel einmessen & Aufstellung planen', note:'Grundriss vorher zeichnen', priority:'medium', category:'Einrichtung'},
+      {text:'Wertvolle Gegenstände separat transportieren', note:'Selbst transportieren, nicht im LKW', priority:'medium', category:'Transport'},
+      {text:'Alte Wohnung reinigen & übergeben', note:'Endreinigung professionell?', priority:'medium', category:'Abschluss'},
+      {text:'Neue Wohnung einrichten & gemütlich machen', note:'Das Schöne am Ende!', priority:'low', category:'Einrichtung'},
+    ]},
+  ];
+
+  // Find matching context
+  let ctx = contexts.find(c => c.keys.some(k => d.includes(k)));
+
+  if (!ctx) {
+    // Generic
+    const title = desc.substring(0, 45) + (desc.length > 45 ? '…' : '');
+    const genericTodos = [
+      {text:'Ziele & Erfolgskriterien definieren', note:'Was soll am Ende erreicht sein?', priority:'high', category:'Planung'},
+      {text:'Ressourcen & Budget einplanen', note:'Zeit, Geld, Menschen', priority:'high', category:'Planung'},
+      {text:'Wichtigste erste Schritte identifizieren', note:'Low-hanging fruit zuerst', priority:'high', category:'Start'},
+      {text:'Deadline & Meilensteine festlegen', note:'Realistische Zeitplanung', priority:'medium', category:'Planung'},
+      {text:'Notwendige Informationen recherchieren', note:'Was musst du noch lernen?', priority:'medium', category:'Recherche'},
+      {text:'Beteiligte Personen kontaktieren', note:'Wer muss einbezogen werden?', priority:'medium', category:'Kommunikation'},
+      {text:'Fortschritt dokumentieren', note:'Kurzes Tagebuch oder Notion-Seite', priority:'low', category:'Dokumentation'},
+      {text:'Risiken & Hindernisse antizipieren', note:'Was könnte schiefgehen?', priority:'medium', category:'Planung'},
+      {text:'Zwischenergebnisse reviewen', note:'Regelmäßige Check-ins einplanen', priority:'low', category:'Review'},
+      {text:'Finales Ergebnis präsentieren / abliefern', note:'Erfolg feiern!', priority:'high', category:'Abschluss'},
+    ];
+    ctx = { title, todos: genericTodos };
+  }
+
+  const selected = ctx.todos.slice(0, count);
+  return { title: ctx.title || desc.substring(0,45), todos: selected };
+}
+
+// ─── TOGGLE TODO ──────────────────────────────────────────
+function toggleTodo(lid, tid) {
+  const list = lists.find(l => l.id === lid);
+  if (!list) return;
+  const todo = list.todos.find(t => t.id === tid);
+  if (todo) { todo.done = !todo.done; }
+  renderHistory();
+  renderRight();
+}
+
+function deleteTodo(lid, tid) {
+  const list = lists.find(l => l.id === lid);
+  if (!list) return;
+  list.todos = list.todos.filter(t => t.id !== tid);
+  renderHistory();
+  renderRight();
+}
+
+function deleteList(lid) {
+  lists = lists.filter(l => l.id !== lid);
+  if (activeLid === lid) activeLid = lists[0]?.id || null;
+  renderHistory();
+  renderRight();
+}
+
+function clearDone(lid) {
+  const list = lists.find(l => l.id === lid);
+  if (!list) return;
+  list.todos = list.todos.filter(t => !t.done);
+  renderHistory();
+  renderRight();
+}
+
+function selectList(lid) {
+  activeLid = lid;
+  renderHistory();
+  renderRight();
+}
+
+// ─── RENDER ───────────────────────────────────────────────
+function renderHistory() {
+  document.getElementById('hdrCount').textContent = lists.length;
+  const el = document.getElementById('historyList');
+
+  if (lists.length === 0) {
+    el.innerHTML = '<div style="font-size:0.75rem;color:var(--muted);text-align:center;padding:20px 0;font-style:italic">Noch keine Listen</div>';
+    return;
+  }
+
+  el.innerHTML = lists.map(l => {
+    const done  = (l.todos||[]).filter(t=>t.done).length;
+    const total = (l.todos||[]).length;
+    const pct   = total ? Math.round((done/total)*100) : 0;
+    const isActive = l.id === activeLid;
+    const title = l.title || l.description.substring(0,35);
+
+    return `
+      <div class="history-item ${isActive?'active':''}" onclick="selectList('${l.id}')">
+        <div class="hist-info">
+          <div class="hist-title">${esc(title)}</div>
+          <div class="hist-meta">${l.status==='generating'?'⏳ Generiert…':total+' Aufgaben'}</div>
+        </div>
+        ${total > 0 ? `
+          <div class="hist-progress">
+            <div class="hist-frac">${done}/${total}</div>
+            <div class="hist-bar"><div class="hist-bar-fill" style="width:${pct}%"></div></div>
+          </div>` : ''}
+        <button class="btn-del-list" onclick="event.stopPropagation();deleteList('${l.id}')">✕</button>
+      </div>`;
+  }).join('');
+}
+
+function renderRight() {
+  const panel = document.getElementById('rightPanel');
+
+  if (!activeLid) {
+    panel.innerHTML = `
+      <div class="empty-right" id="emptyState">
+        <div class="empty-icon">✦</div>
+        <div class="empty-title">Noch keine Liste</div>
+        <div class="empty-sub">Gib links eine Beschreibung ein<br>und lass die KI deine Aufgaben generieren.</div>
+      </div>`;
+    return;
+  }
+
+  const list = lists.find(l => l.id === activeLid);
+  if (!list) return;
+
+  const done  = (list.todos||[]).filter(t=>t.done).length;
+  const total = (list.todos||[]).length;
+  const pct   = total ? Math.round((done/total)*100) : 0;
+
+  const prioOrder = { high:0, medium:1, low:2 };
+  const levelLabel = { kurz:'Kurz & knapp', mittel:'Mittel', detailliert:'Detailliert' };
+
+  if (list.status === 'generating') {
+    panel.innerHTML = `
+      <div class="list-view">
+        <div class="list-view-header">
+          <div class="list-view-title" style="opacity:0.4;font-style:italic">Generiert…</div>
+        </div>
+        <div class="generating-block">
+          <div class="gen-line"></div>
+          <div class="gen-line"></div>
+          <div class="gen-line"></div>
+          <div class="gen-line"></div>
+          <div class="gen-line"></div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Group by category
+  const cats = {};
+  (list.todos||[]).forEach(t => {
+    const cat = t.category || 'Allgemein';
+    if (!cats[cat]) cats[cat] = [];
+    cats[cat].push(t);
+  });
+
+  let todosHTML = '';
+  Object.entries(cats).forEach(([cat, items]) => {
+    todosHTML += `
+      <div class="cat-divider">
+        <div class="cat-name">${esc(cat)}</div>
+        <div class="cat-line"></div>
+      </div>`;
+
+    todosHTML += items.map((t, i) => `
+      <div class="todo-item ${t.done?'done':''}" style="animation-delay:${i*0.04}s">
+        <div class="todo-check ${t.done?'checked':''}" onclick="toggleTodo('${list.id}','${t.id}')"></div>
+        <div class="todo-body">
+          <div class="todo-text">${esc(t.text)}</div>
+          ${t.note ? `<div class="todo-note">${esc(t.note)}</div>` : ''}
+        </div>
+        <div class="todo-right">
+          ${t.priority ? `<span class="prio-badge prio-${t.priority}">${t.priority}</span>` : ''}
+          <button class="btn-del-todo" onclick="deleteTodo('${list.id}','${t.id}')">✕</button>
+        </div>
+      </div>`).join('');
+  });
+
+  panel.innerHTML = `
+    <div class="list-view">
+      <div class="list-view-header">
+        <div class="list-view-title">${esc(list.title||list.description)}</div>
+        <div class="list-view-meta">
+          <span class="lvm-chip">${total} Aufgaben</span>
+          <span class="lvm-chip">${levelLabel[list.detail]||''}</span>
+          ${done > 0 ? `<span class="lvm-chip gold">✓ ${done} erledigt</span>` : ''}
+        </div>
+      </div>
+
+      ${total > 0 ? `
+        <div class="progress-section">
+          <div class="progress-label">
+            <span class="progress-text">Fortschritt</span>
+            <span class="progress-pct">${pct}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${pct}%"></div>
+          </div>
+        </div>` : ''}
+
+      <div class="todos-list">${todosHTML}</div>
+
+      <div class="actions-bar">
+        <div class="actions-left">
+          <strong>${done}</strong> von ${total} erledigt
+        </div>
+        <div class="actions-right">
+          ${done > 0 ? `<button class="btn-sm danger" onclick="clearDone('${list.id}')">Erledigte löschen</button>` : ''}
+          <button class="btn-sm danger" onclick="deleteList('${list.id}')">Liste löschen</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+renderHistory();
+renderRight();
+</script>
+</body>
+</html>

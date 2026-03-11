@@ -19,9 +19,9 @@ Ein Kredit wird genehmigt, wenn **alle** folgenden Kriterien erfüllt sind:
 
 | Kriterium        | Wert          | Beschreibung                                                  |
 | ---------------- | ------------- | ------------------------------------------------------------- |
-| Schuldenquote    | ≤ 35%        | Monatliche Rate darf max. 35% des Nettoeinkommens betragen    |
-| Mindesteinkommen | ≥ 1.500 EUR  | Monatliches Nettoeinkommen muss mindestens 1.500 EUR betragen |
-| Maximalbetrag    | ≤ 50.000 EUR | Der angeforderte Kreditbetrag darf max. 50.000 EUR betragen   |
+| Schuldenquote    | ≤ 35%         | Monatliche Rate darf max. 35% des Nettoeinkommens betragen    |
+| Mindesteinkommen | ≥ 1.500 EUR   | Monatliches Nettoeinkommen muss mindestens 1.500 EUR betragen |
+| Maximalbetrag    | ≤ 50.000 EUR  | Der angeforderte Kreditbetrag darf max. 50.000 EUR betragen   |
 | Zinssatz         | 4,5% p.a.     | Verwendeter Jahreszins für Berechnung                        |
 
 ## Implementierung, Installation & Ausführung
@@ -92,6 +92,40 @@ public class CreditCheckTools
             """;
     }
 
+    [McpServerTool, Description("Berechnet Zinsen und erstellt einen Tilgungsplan")]
+    public static string CalculateInterest(
+        [Description("Kreditbetrag in EUR")] decimal principal,
+        [Description("Jährlicher Zinssatz in Prozent, z.B. 4.5")] decimal annualRatePercent,
+        [Description("Laufzeit in Monaten")] int durationMonths,
+        [Description("Tilgungsplan anzeigen? true/false")] bool showSchedule = false)
+    {
+        decimal monthlyRate = annualRatePercent / 100m / 12m;
+        decimal monthlyPayment = principal * monthlyRate /
+            (1 - (decimal)Math.Pow((double)(1 + monthlyRate), -durationMonths));
+
+        decimal totalPayment = monthlyPayment * durationMonths;
+        decimal totalInterest = totalPayment - principal;
+
+        var result = $"""
+            ── Zinsberechnung ──────────────────────
+            Kreditbetrag:       {principal:C}
+            Zinssatz:           {annualRatePercent:F2}% p.a.
+            Laufzeit:           {durationMonths} Monate
+            Monatliche Rate:    {monthlyPayment:C}
+            Gesamtzahlung:      {totalPayment:C}
+            Gesamtzinsen:       {totalInterest:C}
+            Zinsanteil:         {totalInterest / totalPayment:P1}
+            ────────────────────────────────────────
+            """;
+
+        if (showSchedule)
+        {
+            result += BuildSchedule(principal, monthlyRate, monthlyPayment, durationMonths);
+        }
+
+        return result;
+    }
+
     private static string GetReason(bool approved, decimal ratio, decimal income, decimal amount)
     {
         if (approved) return "Alle Kriterien erfüllt";
@@ -100,6 +134,32 @@ public class CreditCheckTools
         if (ratio > 0.35m) return $"Schuldenquote {ratio:P1} übersteigt 35%-Grenze";
         return "Kriterien nicht erfüllt";
     }
+
+    private static string BuildSchedule(decimal principal, decimal monthlyRate, decimal monthlyPayment, int months)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("\nTilgungsplan (erste 12 Monate):");
+        sb.AppendLine($"{"Monat",-7} {"Rate",-12} {"Zinsen",-12} {"Tilgung",-12} {"Restschuld"}");
+        sb.AppendLine(new string('─', 55));
+
+        decimal balance = principal;
+        int showMonths = Math.Min(months, 12);
+
+        for (int i = 1; i <= showMonths; i++)
+        {
+            decimal interest = balance * monthlyRate;
+            decimal repayment = monthlyPayment - interest;
+            balance -= repayment;
+
+            sb.AppendLine($"{i,-7} {monthlyPayment,8:C}    {interest,8:C}    {repayment,8:C}    {Math.Max(0, balance),10:C}");
+        }
+
+        if (months > 12)
+            sb.AppendLine($"... (+ {months - 12} weitere Monate)");
+
+        return sb.ToString();
+    }
+
 }
 ```
 

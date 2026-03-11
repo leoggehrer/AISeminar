@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("McpCreditCheck")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+61d0912b2c0052637749e52cb375fda376faaacd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4cea5e4a699eaf9eabe8d5d01f54ea5a145767e7")]
 [assembly: System.Reflection.AssemblyProductAttribute("McpCreditCheck")]
 [assembly: System.Reflection.AssemblyTitleAttribute("McpCreditCheck")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

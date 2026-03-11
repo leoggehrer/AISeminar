@@ -1,0 +1,130 @@
+{
+  "name": "TaskMind – KI ToDo Listen Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "todo-ai",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      },
+      "id": "node_webhook",
+      "name": "Webhook – Beschreibung eingehend",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "notes": "Empfängt POST: { listId, description, count, detail, timestamp }"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst { listId, description, count, detail } = body;\n\nconst detailMap = {\n  kurz: 'Kurze, prägnante Aufgaben (max 6 Wörter pro Aufgabe, keine Notizen nötig)',\n  mittel: 'Klare Aufgaben mit kurzer Notiz als Hilfestellung (1 Satz)',\n  detailliert: 'Ausführliche Aufgaben mit konkreten Tipps, Tools und Zeitschätzungen als Notiz'\n};\n\nconst prompt = `Du bist ein erfahrener Projektmanager und Produktivitäts-Coach. Erstelle eine strukturierte ToDo-Liste basierend auf der Beschreibung. Antworte NUR mit validem JSON.\n\nBeschreibung des Vorhabens:\n\"${description}\"\n\nAnforderungen:\n- Anzahl Aufgaben: genau ${count} ToDos\n- Detailtiefe: ${detailMap[detail] || detailMap.mittel}\n- Sprache: Deutsch\n- Priorisiere nach Wichtigkeit und logischer Reihenfolge\n\nAntworte in exakt diesem JSON-Format:\n{\n  \"title\": \"Kurzer, prägnanter Listentitel (max 5 Wörter)\",\n  \"todos\": [\n    {\n      \"text\": \"Aufgabe (Imperativ, handlungsorientiert)\",\n      \"note\": \"Hilfreiche Notiz oder Tipp (optional, nur bei mittel/detailliert)\",\n      \"priority\": \"high\" | \"medium\" | \"low\",\n      \"category\": \"Kategorie-Name (z.B. Planung, Technik, Finanzen)\"\n    }\n  ]\n}\n\nRegeln:\n- Aufgaben müssen KONKRET und UMSETZBAR sein (keine vagen Aussagen)\n- Logische Reihenfolge beachten (was kommt zuerst?)\n- Kategorien sinnvoll gruppieren (max 4-5 verschiedene Kategorien)\n- priority: high = kritisch/zuerst, medium = wichtig, low = nice-to-have\n- Genau ${count} todos im Array\n- note: leer lassen (\"\") wenn detailtiefe \"kurz\" ist`;\n\nreturn [{ json: { prompt, listId } }];"
+      },
+      "id": "node_prepare",
+      "name": "Prompt aufbauen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Du bist ein erfahrener Projektmanager und Produktivitäts-Experte. Du erstellst präzise, handlungsorientierte ToDo-Listen die wirklich umsetzbar sind. Keine vagen Aufgaben, keine Redundanzen. Du antwortest AUSSCHLIESSLICH mit validem JSON — kein Markdown, keine Erklärungen, keine Backticks."
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.6,
+          "maxTokens": 1500
+        }
+      },
+      "id": "node_openai",
+      "name": "GPT-4o-mini ToDo Generator",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [600, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiText = $input.first().json.message?.content || '{}';\nconst listId = $('Prompt aufbauen').first().json.listId;\n\nlet parsed;\ntry {\n  const cleaned = aiText.replace(/```json\\n?/g,'').replace(/```/g,'').trim();\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = { title: 'ToDo Liste', todos: [] };\n}\n\n// Validierung\nif (!Array.isArray(parsed.todos)) parsed.todos = [];\n\nconst validPrios = ['high','medium','low'];\n\nparsed.todos = parsed.todos.map((t, i) => ({\n  text:     String(t.text     || '').trim(),\n  note:     String(t.note     || '').trim(),\n  priority: validPrios.includes(t.priority) ? t.priority : 'medium',\n  category: String(t.category || 'Allgemein').trim()\n})).filter(t => t.text.length > 0);\n\nreturn [{ json: {\n  title:  parsed.title || 'ToDo Liste',\n  todos:  parsed.todos,\n  listId\n}}];"
+      },
+      "id": "node_parse",
+      "name": "Liste validieren",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              { "name": "Content-Type", "value": "application/json" },
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "node_response",
+      "name": "Response senden",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook – Beschreibung eingehend": { "main": [[{ "node": "Prompt aufbauen",          "type": "main", "index": 0 }]] },
+    "Prompt aufbauen":                  { "main": [[{ "node": "GPT-4o-mini ToDo Generator","type": "main", "index": 0 }]] },
+    "GPT-4o-mini ToDo Generator":       { "main": [[{ "node": "Liste validieren",          "type": "main", "index": 0 }]] },
+    "Liste validieren":                 { "main": [[{ "node": "Response senden",           "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveManualExecutions": true },
+  "_readme": {
+    "beschreibung": "GPT-4o-mini generiert aus einer freien Beschreibung eine strukturierte, priorisierte ToDo-Liste mit Kategorien und optionalen Notizen/Tipps.",
+    "payload_format": {
+      "incoming": {
+        "listId":      "string",
+        "description": "string – freie Beschreibung des Vorhabens",
+        "count":       "number – gewünschte Anzahl Aufgaben",
+        "detail":      "kurz | mittel | detailliert"
+      },
+      "outgoing": {
+        "title": "string – kurzer Listentitel",
+        "todos": [
+          {
+            "text":     "string – Aufgabe im Imperativ",
+            "note":     "string – optionale Hilfsnotiz",
+            "priority": "high | medium | low",
+            "category": "string – Gruppenname"
+          }
+        ],
+        "listId": "string"
+      }
+    },
+    "setup": [
+      "1. JSON in n8n importieren",
+      "2. OpenAI Credential hinterlegen",
+      "3. Workflow aktivieren → Webhook-URL kopieren",
+      "4. URL in der App eintragen",
+      "5. Beschreibung eingeben → KI generiert sofort die passenden Aufgaben"
+    ]
+  }
+}
