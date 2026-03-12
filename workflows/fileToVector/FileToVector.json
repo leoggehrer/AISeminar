@@ -1,0 +1,705 @@
+{
+  "name": "FileToVector",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1_hf4Lcn6Weooooan_4p6aiHO-8zLUOeJ",
+          "mode": "list",
+          "cachedResultName": "rag",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1_hf4Lcn6Weooooan_4p6aiHO-8zLUOeJ"
+        },
+        "event": "fileCreated",
+        "options": {
+          "fileType": "all"
+        }
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        4640,
+        4880
+      ],
+      "id": "f6ce5d7d-2add-44e8-92b8-6978fc8c638c",
+      "name": "FileCreate",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "mjmIyOXu9gJdUp8L",
+          "name": "Google Drive account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1_hf4Lcn6Weooooan_4p6aiHO-8zLUOeJ",
+          "mode": "list",
+          "cachedResultName": "rag",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1_hf4Lcn6Weooooan_4p6aiHO-8zLUOeJ"
+        },
+        "event": "fileUpdated",
+        "options": {
+          "fileType": "all"
+        }
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        4640,
+        5104
+      ],
+      "id": "129a087f-d643-4fcb-a351-caa3e5564689",
+      "name": "FileUpdate",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "mjmIyOXu9gJdUp8L",
+          "name": "Google Drive account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "00bfe72e-ac2d-4ef9-8ebd-ec1ab5091e63",
+              "name": "fileId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "6994272d-baa1-4112-aa17-b436c5646d13",
+              "name": "mimeType",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4864,
+        4992
+      ],
+      "id": "dbc16b9f-ea87-4ea0-8470-e292f581ada6",
+      "name": "SetFileId"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM openai_doc_vectors\nWHERE metadata#>>'{file_id}'='{{$json.fileId}}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5344,
+        5008
+      ],
+      "id": "6c6e48d1-78b8-46cc-ace1-ff36cc94b7e4",
+      "name": "DeleteVectors",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "UoqszLjcmzlEQ1H5",
+          "name": "PGVector"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('SetFileId').item.json.fileId }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        5520,
+        5008
+      ],
+      "id": "ccba3e11-f7ef-44cb-b7bf-3e36d1ea19e1",
+      "name": "DownloadFile",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "mjmIyOXu9gJdUp8L",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('SetFileId').item.json.mimeType }}",
+                    "rightValue": "text/plain",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e29109b0-0bbc-40af-9a18-7f4d3a86ade7"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bd5d90bc-0024-4fe2-bfb6-4378bdc3065d",
+                    "leftValue": "={{ $('SetFileId').item.json.mimeType }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Pdf"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        5712,
+        5008
+      ],
+      "id": "de223cbc-4d97-418b-ae26-9a8e095733db",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1_hf4Lcn6Weooooan_4p6aiHO-8zLUOeJ",
+            "mode": "list",
+            "cachedResultName": "rag",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1_hf4Lcn6Weooooan_4p6aiHO-8zLUOeJ"
+          },
+          "whatToSearch": "files"
+        },
+        "options": {
+          "fields": [
+            "id",
+            "mimeType"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        4640,
+        5344
+      ],
+      "id": "6d5dc895-6955-4973-a1d7-aa8dbf1a22cb",
+      "name": "SearchFileInFolder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "mjmIyOXu9gJdUp8L",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        4448,
+        5344
+      ],
+      "id": "d6d58cb7-d2ae-4a8f-8d6d-c589ade7ee96",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        5088,
+        4992
+      ],
+      "id": "04e583a4-7c4c-4bca-818e-37c89959f4f4",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        5712,
+        5248
+      ],
+      "id": "864a66c6-e011-4770-b606-caca1905ac1e",
+      "name": "ExtractPdfText"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        4752,
+        5696
+      ],
+      "id": "d35be91e-b89a-42fd-a890-2737bab955ed",
+      "name": "When chat message received",
+      "webhookId": "0309864e-5dd6-43fc-ae09-b2bc39da32e1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        4960,
+        5696
+      ],
+      "id": "1b8a8d26-82dc-4fd5-ba17-79c17b822bf7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        4960,
+        5984
+      ],
+      "id": "120d6ce9-cdd2-48ac-9156-b34cf35d882b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        5056,
+        6096
+      ],
+      "id": "2243e0c4-051c-446a-87e1-ecbe00838e99",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Durchsuche die Wissensdatenbank zu folgenden Themen:\n\n-  Deep Learning Cookbook\n- Blumensträuße",
+        "tableName": "openai_doc_vectors",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        5216,
+        5920
+      ],
+      "id": "66170cf6-4ac0-4955-800a-f945927f6f45",
+      "name": "Postgres PGVector Store",
+      "credentials": {
+        "postgres": {
+          "id": "UoqszLjcmzlEQ1H5",
+          "name": "PGVector"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        5216,
+        6096
+      ],
+      "id": "6fc2e019-7fa1-499c-b385-c435b44e4a98",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": "openai_doc_vectors",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        6144,
+        5248
+      ],
+      "id": "fc0d91f5-3cd1-4743-8ea8-f367cfd392aa",
+      "name": "PGVectorStore",
+      "credentials": {
+        "postgres": {
+          "id": "UoqszLjcmzlEQ1H5",
+          "name": "PGVector"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        6080,
+        5504
+      ],
+      "id": "e195b19c-931d-4d14-9e6e-a07adad2175c",
+      "name": "Embeddings",
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_id",
+                "value": "={{ $('SetFileId').item.json.fileId }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        6272,
+        5504
+      ],
+      "id": "e61bde08-3847-4a95-8c96-fbd9e7e1d8f6",
+      "name": "TextLoader"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        5936,
+        4992
+      ],
+      "id": "ac327700-e4af-488b-876d-f6c721f823e9",
+      "name": "ExtractText"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "FileUpdate": {
+      "main": [
+        [
+          {
+            "node": "SetFileId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FileCreate": {
+      "main": [
+        [
+          {
+            "node": "SetFileId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetFileId": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeleteVectors": {
+      "main": [
+        [
+          {
+            "node": "DownloadFile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DownloadFile": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "ExtractText",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ExtractPdfText",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SearchFileInFolder": {
+      "main": [
+        [
+          {
+            "node": "SetFileId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "SearchFileInFolder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "DeleteVectors",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ExtractPdfText": {
+      "main": [
+        [
+          {
+            "node": "PGVectorStore",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres PGVector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "PGVectorStore",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TextLoader": {
+      "ai_document": [
+        [
+          {
+            "node": "PGVectorStore",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ExtractText": {
+      "main": [
+        [
+          {
+            "node": "PGVectorStore",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ec50bace-cee2-4c0d-a2d0-84ff12e09511",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "22bd81bfa1a72323630d7407aff8a80689ded5a00bef479364b80aa6bab2f598"
+  },
+  "id": "k8F4atQ2qXj7b951",
+  "tags": []
+}
