@@ -1,0 +1,698 @@
+{
+  "name": "ExampleGeneratorV2",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        16272,
+        288
+      ],
+      "id": "ac424dc1-50fc-4fe1-be22-76919f44a5a2",
+      "name": "GmailTrigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "fsiRrLA01UVFV7t3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $input.first().json.content }}",
+        "options": {
+          "systemMessage": "Du bist ein erfahrener Lehrer und erstellst Aufgaben für Schüler und Studenten in verschiedenen Fachbereichen.\n\n**EINGABEPARAMETER:**\n- Fachbereich: Informatik | Mathematik | Naturwissenschaften | Geisteswissenschaften | Wirtschaftswissenschaften | Sonstiges (Standard: Informatik)\n- Thema: z.B. Programmieren POSE C#\n- Kapitel: z.B. Stringbearbeitung, Arrays, Schleifen\n- Level: einfach | mittel | schwer (Standard: mittel)\n- Ausgabesprache: englisch | deutsch (Standard: deutsch)\n- Ausgabeformat: markdown | html (Standard: markdown)\n- Sonstiges: z.B. keine Erklärungen, nur Codebeispiele | mit Erklärungen | nur Übungsaufgaben (Standard: mit Erklärungen)\n\n**REGEL 1 - FACHBEREICH:**\nPasse die Aufgabenstruktur dem Fachbereich an:\n- Informatik: Codebeispiele, Algorithmen, Testvorgaben\n- Mathematik: Formeln, Beweise, Rechenbeispiele\n- Naturwissenschaften: Experimente, Beobachtungen, Hypothesen\n- Geisteswissenschaften: Textanalyse, Argumentation, Quellen\n- Wirtschaftswissenschaften: Fallstudien, Berechnungen, Analysen\n\n**REGEL 2 - SPRACHE (STRIKT BEFOLGEN!):**\nSuche nach \"Ausgabesprache\" oder \"Language\".\n- Falls \"englisch\", \"english\" oder \"en\": Schreibe ALLES auf ENGLISCH\n- Sonst: Schreibe auf DEUTSCH\n\n**REGEL 3 - FORMAT (STRIKT BEFOLGEN!):**\nSuche nach \"Ausgabeformat\" oder \"Format\".\n- Falls \"html\": Nutze HTML-Tags (<h1>, <h2>, <ul>, <li>, <pre><code>, <table>)\n- Sonst: Nutze Markdown (#, ##, -, ```, |)\n\n**REGEL 4 - SONSTIGES:**\nSuche nach \"Sonstiges\".\n- \"keine Erklärungen\" oder \"nur Code\": Nur Aufgabe und Lösung/Code, keine ausführlichen Erklärungen\n- \"nur Übungsaufgaben\": Keine Lösungen, nur Aufgabenstellungen\n- Sonst: Vollständige Aufgabe mit Erklärungen\n\n**STRUKTUR DER AUFGABE:**\n1. Titel mit Aufgabenname und Zielgruppe\n2. Lehrziele (3-5 Punkte)\n3. Aufgabenstellung (detailliert)\n4. Beurteilungskriterien (mit Prozentangaben)\n5. Beispiel (Codeausgabe, Rechenweg, etc.)\n6. Fehlerbehandlung/Häufige Fehler\n7. Hinweise zur Lösung\n8. Testvorgaben/Übungsbeispiele (mind. 4)\n9. Erweiterungsoption\n\n**REGEL 5 - BEURTEILUNGSKRITERIEN (AUTOMATISCH ERSTELLEN!):**\nErstelle automatisch passende Beurteilungskriterien basierend auf der Aufgabenstellung und dem Fachbereich:\n\n**Informatik/Programmierung:**\n- Funktionalität & Korrektheit (40-50%): Erfüllung aller Anforderungen, korrekte Ausgaben\n- Codequalität & Stil (20-25%): Lesbarkeit, Kommentare, Namenskonventionen\n- Algorithmen & Effizienz (15-20%): Optimale Lösung, Zeitkomplexität\n- Fehlerbehandlung (10-15%): Robustheit, Exception Handling\n- Erweiterungen/Bonus (optional 0-10%): Zusatzfunktionen\n\n**Mathematik:**\n- Korrektheit der Lösung (50-60%): Richtige Ergebnisse\n- Rechenweg & Beweisführung (25-30%): Nachvollziehbare Schritte\n- Mathematische Notation (10-15%): Saubere Darstellung\n- Interpretation/Erklärung (10-15%): Verständnis zeigen\n\n**Naturwissenschaften:**\n- Experimentdurchführung (30-35%): Methodik, Protokoll\n- Beobachtung & Daten (25-30%): Vollständigkeit, Genauigkeit\n- Analyse & Interpretation (25-30%): Schlussfolgerungen\n- Darstellung & Dokumentation (10-15%): Übersichtlichkeit\n\n**Geisteswissenschaften:**\n- Inhaltliche Qualität (40-45%): Argumentation, Tiefe\n- Quellenarbeit (20-25%): Recherche, Zitation\n- Struktur & Aufbau (15-20%): Gliederung, roter Faden\n- Sprache & Stil (15-20%): Ausdruck, Rechtschreibung\n\n**Wirtschaftswissenschaften:**\n- Fachliche Korrektheit (35-40%): Berechnungen, Konzepte\n- Analyse & Bewertung (30-35%): Kritisches Denken\n- Praxisbezug (15-20%): Realitätsnähe\n- Darstellung (15-20%): Übersichtlichkeit, Visualisierung\n\nPasse die Prozentverteilung dem Level an:\n- Einfach: Fokus auf Korrektheit (höhere %)\n- Mittel: Ausgewogen zwischen Korrektheit und Qualität\n- Schwer: Stärkere Gewichtung auf Qualität, Effizienz, Tiefe\n\n**QUALITÄTSREGELN:**\n1. Komplexität dem Level anpassen\n2. Praxisnahe, motivierende Aufgabenstellung\n3. Mind. 4 Testfälle/Beispiele\n4. Didaktisch wertvolle Hinweise\n5. Bei Level mittel/schwer: Strukturierung betonen\n6. Beurteilungskriterien müssen auf Aufgabe zugeschnitten sein"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        17472,
+        256
+      ],
+      "id": "1c61fea6-2883-4c9f-b213-e0e9d850d5a2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $('GmailTrigger').item.json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        16672,
+        272
+      ],
+      "id": "ee06e1a7-1a9c-4694-9c4f-fe2bfc742e24",
+      "name": "MarkAsRead",
+      "webhookId": "e25799e1-7a1d-406a-8503-4d47e4ef0b2f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "fsiRrLA01UVFV7t3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('GmailTrigger').item.json.From }}",
+        "subject": "=Re: {{ $('GmailTrigger').item.json.Subject }}",
+        "emailType": "text",
+        "message": "={{ $json.emailBody }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        18176,
+        240
+      ],
+      "id": "48e6b5ac-c212-48e8-9fd4-052cd5dd013a",
+      "name": "GmailReply",
+      "webhookId": "2f124e10-ba44-48ac-aaf5-07968ea7da9a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "fsiRrLA01UVFV7t3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a2f0eb6f-9653-4ed5-8a38-d6f9577e86df",
+              "leftValue": "={{ $json.Subject?.toString().trim().toLowerCase() || '' }}",
+              "rightValue": "aufgabe",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            },
+            {
+              "id": "bd8cabc9-8abc-4727-8be1-bfb1955e2bb0",
+              "leftValue": "={{ $json.Subject?.toString().trim().toLowerCase() || '' }}",
+              "rightValue": "example",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        16448,
+        288
+      ],
+      "id": "198af351-aa42-4da7-a5a7-05e000d25714",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "content": "Email senden an gehrergerhard@gmail.com\n\n**Betreff:** Example\n**Inhalt:**\n**Fachbereich:** Informatik | Mathematik | Naturwissenschaften | Geisteswissenschaften | Wirtschaftswissenschaften | Sonstiges (Standard: Informatik)\nThema: z.B. Programmieren POSE C#\n**Kapitel:** z.B. Stringbearbeitung, Arrays, Schleifen\n**Level:** einfach | mittel | schwer (Standard: mittel)\n**Ausgabesprache:** englisch | deutsch (Standard: deutsch)\n**Ausgabeformat:** markdown | html (Standard: markdown)\n**Sonstiges:** z.B. keine Erklärungen, nur Codebeispiele | mit Erklärungen | nur Übungsaufgaben (Standard: mit Erklärungen)\n\n**Zum Beispiel:**\n\nBetreff: Example \nInhalt:\nFachbereich: Mathematik \nThema: Analysis\nKapitel: Ableitungsregeln\nLevel: mittel\nAusgabesprache: englisch\nAusgabeformat: markdown\nSonstiges: mit Erklärungen\n",
+        "height": 672,
+        "width": 496,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        15904,
+        0
+      ],
+      "id": "2b31a7ce-9c46-40ac-82d6-511223847fc1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Filter: Verwende alle Emails die im Betreff Example oder Aufgabe beinhalten\n\nZ.B.: Aufgabe: Ableitung",
+        "height": 672,
+        "width": 192,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        16416,
+        0
+      ],
+      "id": "87e0573c-3e32-4ace-9d5a-b5a9cc86293d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Markiert die Email als gelesen",
+        "height": 240,
+        "width": 192,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        16624,
+        208
+      ],
+      "id": "2e30c989-07de-4c92-b21d-89a2a98a67d4",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        16480,
+        528
+      ],
+      "id": "54b74a59-e65c-4f35-af47-56769aece420",
+      "name": "NoOperation"
+    },
+    {
+      "parameters": {
+        "content": "Analysiert die Email und generiert die Aufgabe nach der definierten Vorlage",
+        "height": 528,
+        "width": 352,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        17392,
+        192
+      ],
+      "id": "6b7d3a9f-9a39-4b87-82e6-b014bc177e26",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Sendet die Aufgabe an den Sender zurück.",
+        "height": 240,
+        "width": 192,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        18144,
+        176
+      ],
+      "id": "19cf0309-0462-4df1-898c-61f903fee9db",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        17056,
+        256
+      ],
+      "id": "37085fd2-2299-41fa-b009-d70d4e06981e",
+      "name": "Input"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "createExample",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16256,
+        -208
+      ],
+      "id": "ab01f464-a8f4-47d7-b973-92ca53ff207c",
+      "name": "Webhook",
+      "webhookId": "5f51a9ce-cc2b-4ab1-96e3-f490cd31b959"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  \"from\": $('GmailTrigger').first().json.From,\n  \"subject\": $('GmailTrigger').first().json.Subject,\n  \"content\": $('GmailTrigger').first().json.text || $('GmailTrigger').first().json.snippet || '',\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16864,
+        272
+      ],
+      "id": "972ee25c-454e-495f-b506-afd4789d3944",
+      "name": "PrepareEmailData"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  \"sessionId\": $input.first().json.body.sessionId || '',\n  \"from\": '',\n  \"subject\": '',\n  \"content\": $input.first().json.body.content || '',\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16864,
+        -208
+      ],
+      "id": "a36b0d79-21d0-49e4-b000-d92bcb4cb311",
+      "name": "PrepareHookData"
+    },
+    {
+      "parameters": {
+        "jsCode": "function generateGuid() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\nreturn {\n  \"sessionId\": $input.first().json.sessionId || generateGuid(),\n  \"from\": $input.first().json.from,\n  \"subject\": $input.first().json.subject,\n  \"content\": $input.first().json.content\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        17232,
+        256
+      ],
+      "id": "a3cc22a5-84e5-4f5d-85cd-8ec01b7faa21",
+      "name": "PrepareData"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('PrepareData').item.json.sessionId }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        17568,
+        592
+      ],
+      "id": "eff408ef-d835-4a2a-ba48-a9a6a31beeca",
+      "name": "ChatMemory",
+      "credentials": {
+        "postgres": {
+          "id": "iYMqy2OzuA3ajmSK",
+          "name": "Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Aufbereitung der Verarbeitungsdaten\n\n\n",
+        "height": 704,
+        "width": 544
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        16832,
+        -256
+      ],
+      "id": "4feb76d8-4dd9-4a5b-8a0b-82ed2d02d04d",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "Schnittstelle zu externen Apps\n\nMethod: POST\nURL: http://localhost:5678/webhook/createExample\nBody:\n{\n  \"sessionId\": \"XXXYYYZZZ\",\n  \"content\": \"Fachbereich: Mathematik\n                      Thema: Winkelfunktionen\n                      ...\"\n}\n",
+        "height": 240,
+        "width": 496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        15904,
+        -256
+      ],
+      "id": "4a4dff80-84d7-45e6-958c-849e81f583b5",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        18192,
+        560
+      ],
+      "id": "15fc1377-b5d9-47d1-8b43-77c80969a4bc",
+      "name": "RespondToWebhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eb414f0f-f415-4de0-88a0-8254ade96f8d",
+              "leftValue": "={{ $('Input').item.json.from ?? '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        17792,
+        256
+      ],
+      "id": "eab12ebf-1c8a-467d-8464-6d02f898e9ce",
+      "name": "IfEmailRequest"
+    },
+    {
+      "parameters": {
+        "content": "Sendet die Aufgabe an den Sender zurück.",
+        "height": 224,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        18144,
+        496
+      ],
+      "id": "f96b2310-71a2-4432-80af-774376c0fc0f",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        18400,
+        560
+      ],
+      "id": "f8dc3f92-f022-4338-88dd-dae7f6b3df38",
+      "name": "ExitWebhook"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        18400,
+        240
+      ],
+      "id": "420b7604-f19e-4cb1-987b-1c580fbc38b4",
+      "name": "ExitEmail"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrahiere Format aus dem Input\nconst content = $input.first().json.content || '';\nconst output = $input.first().json.output || '';\n\n// Erkenne Format aus dem Content oder nutze Default\nlet format = 'markdown';\nlet fileExtension = 'md';\nlet mimeType = 'text/markdown';\n\nif (content.toLowerCase().includes('ausgabeformat: html') || content.toLowerCase().includes('format: html')) {\n  format = 'html';\n  fileExtension = 'html';\n  mimeType = 'text/html';\n}\n\n// Erstelle Dateinamen mit Zeitstempel\nconst timestamp = new Date().toISOString().split('T')[0];\nconst filename = `task_${timestamp}.${fileExtension}`;\n\n// Email Body Text\nconst emailBody = `Ihre Aufgabe wurde erfolgreich erstellt.\\n\\nDie vollständige Aufgabe finden Sie im Anhang: ${filename}\\n\\nViel Erfolg!`;\n\n// Erstelle Binary-Daten mit prepareBinaryData\nconst fileBuffer = Buffer.from(output, 'utf-8');\nconst binaryData = await this.helpers.prepareBinaryData(fileBuffer, filename, mimeType);\n\nreturn [{\n  json: {\n    output: output,\n    emailBody: emailBody,\n    filename: filename,\n    format: format\n  },\n  binary: {\n    data: binaryData\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        17984,
+        240
+      ],
+      "id": "8bd88ace-63fb-4635-9dee-f6db4d33a8e2",
+      "name": "CreateAttachment"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        17472,
+        448
+      ],
+      "id": "4b2f8d0b-44c8-48fd-aaba-4c16127871bf",
+      "name": "OpenAIChatModel",
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "GmailTrigger": [
+      {
+        "json": {
+          "id": "19ba141db7697090",
+          "threadId": "19ba141db7697090",
+          "snippet": "Thema: Programmieren POSE C# Kapitel: Stringbearbeitung Sprache: C# Level: mittel Ausgabesprache: englisch Ausgabeformat: html",
+          "payload": {
+            "mimeType": "text/plain"
+          },
+          "sizeEstimate": 10822,
+          "historyId": "183526",
+          "internalDate": "1767937004000",
+          "labels": [
+            {
+              "id": "INBOX",
+              "name": "INBOX"
+            },
+            {
+              "id": "UNREAD",
+              "name": "UNREAD"
+            }
+          ],
+          "From": "Gerhard Gehrer <g.gehrer@hotmail.com>",
+          "To": "\"gehrergerhard@gmail.com\" <gehrergerhard@gmail.com>",
+          "Subject": "Aufgabe in englisch und html"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "IfEmailRequest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GmailTrigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MarkAsRead": {
+      "main": [
+        [
+          {
+            "node": "PrepareEmailData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "MarkAsRead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NoOperation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input": {
+      "main": [
+        [
+          {
+            "node": "PrepareData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepareEmailData": {
+      "main": [
+        [
+          {
+            "node": "Input",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "PrepareHookData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepareHookData": {
+      "main": [
+        [
+          {
+            "node": "Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GmailReply": {
+      "main": [
+        [
+          {
+            "node": "ExitEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepareData": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatMemory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IfEmailRequest": {
+      "main": [
+        [
+          {
+            "node": "CreateAttachment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RespondToWebhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CreateAttachment": {
+      "main": [
+        [
+          {
+            "node": "GmailReply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RespondToWebhook": {
+      "main": [
+        [
+          {
+            "node": "ExitWebhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAIChatModel": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "3da27b80-3a40-47e1-a738-50c948256d76",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "22bd81bfa1a72323630d7407aff8a80689ded5a00bef479364b80aa6bab2f598"
+  },
+  "id": "zXfJB6BtCPtOgjZU",
+  "tags": []
+}
