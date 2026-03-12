@@ -8,6 +8,7 @@ export const environment = {
   loginRequired: false,
   API_BASE_URL: 'https://localhost:7074/api',
   LOCALE: 'de-DE',
+  N8N_PRODUCT_DESCRIPTION_URL: 'http://localhost:5678/webhook/product-description-ai',
 };
 
 /*

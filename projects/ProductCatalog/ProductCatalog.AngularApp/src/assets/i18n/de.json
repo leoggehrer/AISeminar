@@ -77,6 +77,8 @@
     "YES": "Ja",
     "NO": "Nein",
     "OK": "OK",
+    "BACK": "Zurück",
+    "NO_DATA": "Keine Daten vorhanden",
     "DELETE_CONFIRM": "Möchten Sie den Eintrag '{{item}}' löschen?",
     "DELETE_TITLE": "Löschen bestätigen"
   },
@@ -103,8 +105,70 @@
     },
     "CARDS": {
       "DASHBOARD_TITLE": "Dashboard",
-      "DASHBOARD_TEXT": "Übersicht"
+      "DASHBOARD_TEXT": "Übersicht",
+      "PRODUCTS_TITLE": "Produkte",
+      "PRODUCTS_TEXT": "Produktverwaltung"
     }
+  },
+  "PRODUCT_LIST": {
+    "TITLE": "Produkte",
+    "ADD_ITEM": "Produkt hinzufügen",
+    "SEARCH_PLACEHOLDER": "Name, Beschreibung oder Tags suchen...",
+    "REFRESH": "Aktualisieren",
+    "EDIT": "Bearbeiten",
+    "DELETE": "Löschen",
+    "BACK_TO_DASHBOARD": "Zurück zum Dashboard",
+    "PRICE": "Preis",
+    "STOCK": "Lagerbestand",
+    "TAGS": "Tags",
+    "TONE": "Ton"
+  },
+  "PRODUCT_EDIT": {
+    "CREATE_TITLE": "Neues Produkt erstellen",
+    "EDIT_TITLE": "Produkt bearbeiten",
+    "BASIC_INFO": "Grundinformationen",
+    "PRICING_STOCK": "Preise & Lagerbestand",
+    "DETAILS": "Details",
+    "NAME": "Name",
+    "DESCRIPTION": "Beschreibung",
+    "TAGS": "Tags",
+    "PRICE": "Preis",
+    "STOCK": "Lagerbestand",
+    "CATEGORY": "Kategorie",
+    "TONE": "Ton",
+    "DESCRIPTION_STATUS": "Beschreibungsstatus",
+    "NO_TONE": "Kein Ton",
+    "GENERATE_AI": "KI-Beschreibung generieren",
+    "GENERATE_AI_TOOLTIP": "Beschreibung und Tags automatisch mit KI generieren",
+    "GENERATING": "Wird generiert..."
+  },
+  "PRODUCT_CATEGORY": {
+    "0": "Elektronik",
+    "1": "Mode",
+    "2": "Haushalt",
+    "3": "Sport",
+    "4": "Beauty",
+    "ELEKTRONIK": "Elektronik",
+    "MODE": "Mode",
+    "HAUSHALT": "Haushalt",
+    "SPORT": "Sport",
+    "BEAUTY": "Beauty"
+  },
+  "PRODUCT_TONE": {
+    "0": "Luxus",
+    "1": "Casual",
+    "2": "Technisch",
+    "LUXURY": "Luxus",
+    "CASUAL": "Casual",
+    "TECHNICAL": "Technisch"
+  },
+  "DESCRIPTION_STATUS": {
+    "0": "Keine",
+    "1": "Wird generiert",
+    "2": "Fertig",
+    "NONE": "Keine",
+    "GENERATING": "Wird generiert",
+    "DONE": "Fertig"
   },
   "MESSAGE_BOX": {
     "TITLE": "Hinweis",

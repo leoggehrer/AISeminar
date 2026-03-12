@@ -1,0 +1,149 @@
+﻿<!--@AiCode-->
+<div *ngIf="dataItem" class="modern-edit-container">
+    <div class="modern-edit-card">
+        <div class="modern-edit-header d-flex justify-content-between align-items-center">
+            <h3><i class="bi bi-box-seam me-2"></i>{{ title | translate }}</h3>
+            <button type="button" class="btn-close-custom" [attr.aria-label]="'COMMON.CLOSE' | translate"
+                (click)="dismiss()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modern-edit-body">
+            <form (ngSubmit)="submitForm()" #editForm="ngForm">
+
+                <!-- Grundinformationen -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class="bi bi-info-circle"></i>
+                        {{ 'PRODUCT_EDIT.BASIC_INFO' | translate }}
+                    </h4>
+
+                    <div class="modern-form-group">
+                        <label for="name" class="modern-form-label">
+                            <i class="bi bi-pencil"></i>
+                            {{ 'PRODUCT_EDIT.NAME' | translate }}
+                        </label>
+                        <input id="name" class="form-control modern-form-control" [(ngModel)]="dataItem.name"
+                            name="name" required maxlength="256" />
+                    </div>
+
+                    <div class="modern-form-group">
+                        <label for="description" class="modern-form-label">
+                            <i class="bi bi-text-paragraph"></i>
+                            {{ 'PRODUCT_EDIT.DESCRIPTION' | translate }}
+                        </label>
+                        <textarea id="description" class="form-control modern-form-control"
+                            [(ngModel)]="dataItem.description" name="description" maxlength="2048"
+                            rows="4"></textarea>
+                        <div class="d-flex justify-content-end mt-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                (click)="generateDescriptionWithAI()"
+                                [disabled]="isGenerating || !dataItem.name"
+                                [title]="'PRODUCT_EDIT.GENERATE_AI_TOOLTIP' | translate">
+                                <span *ngIf="isGenerating" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                <i *ngIf="!isGenerating" class="bi bi-robot me-1"></i>
+                                {{ (isGenerating ? 'PRODUCT_EDIT.GENERATING' : 'PRODUCT_EDIT.GENERATE_AI') | translate }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="modern-form-group">
+                        <label for="tags" class="modern-form-label">
+                            <i class="bi bi-tags"></i>
+                            {{ 'PRODUCT_EDIT.TAGS' | translate }}
+                        </label>
+                        <input id="tags" class="form-control modern-form-control" [(ngModel)]="dataItem.tags"
+                            name="tags" maxlength="512" />
+                    </div>
+                </div>
+
+                <!-- Preise & Lagerbestand -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class="bi bi-currency-euro"></i>
+                        {{ 'PRODUCT_EDIT.PRICING_STOCK' | translate }}
+                    </h4>
+
+                    <div class="modern-form-group">
+                        <label for="price" class="modern-form-label">
+                            <i class="bi bi-currency-euro"></i>
+                            {{ 'PRODUCT_EDIT.PRICE' | translate }}
+                        </label>
+                        <input id="price" type="number" min="0" step="0.01" class="form-control modern-form-control"
+                            [(ngModel)]="dataItem.price" name="price" required />
+                    </div>
+
+                    <div class="modern-form-group">
+                        <label for="stock" class="modern-form-label">
+                            <i class="bi bi-archive"></i>
+                            {{ 'PRODUCT_EDIT.STOCK' | translate }}
+                        </label>
+                        <input id="stock" type="number" min="0" step="1" class="form-control modern-form-control"
+                            [(ngModel)]="dataItem.stock" name="stock" required />
+                    </div>
+                </div>
+
+                <!-- Details -->
+                <div class="form-section">
+                    <h4 class="form-section-title">
+                        <i class="bi bi-sliders"></i>
+                        {{ 'PRODUCT_EDIT.DETAILS' | translate }}
+                    </h4>
+
+                    <div class="modern-form-group">
+                        <label for="category" class="modern-form-label">
+                            <i class="bi bi-tag"></i>
+                            {{ 'PRODUCT_EDIT.CATEGORY' | translate }}
+                        </label>
+                        <select id="category" class="form-select modern-form-select"
+                            [(ngModel)]="dataItem.category" name="category" required>
+                            <option *ngFor="let opt of categoryOptions" [ngValue]="opt.value">
+                                {{ opt.labelKey | translate }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="modern-form-group">
+                        <label for="tone" class="modern-form-label">
+                            <i class="bi bi-palette"></i>
+                            {{ 'PRODUCT_EDIT.TONE' | translate }}
+                        </label>
+                        <select id="tone" class="form-select modern-form-select"
+                            [(ngModel)]="dataItem.tone" name="tone">
+                            <option [ngValue]="null">{{ 'PRODUCT_EDIT.NO_TONE' | translate }}</option>
+                            <option *ngFor="let opt of toneOptions" [ngValue]="opt.value">
+                                {{ opt.labelKey | translate }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="modern-form-group">
+                        <label for="descriptionStatus" class="modern-form-label">
+                            <i class="bi bi-file-earmark-text"></i>
+                            {{ 'PRODUCT_EDIT.DESCRIPTION_STATUS' | translate }}
+                        </label>
+                        <select id="descriptionStatus" class="form-select modern-form-select"
+                            [(ngModel)]="dataItem.descriptionStatus" name="descriptionStatus">
+                            <option *ngFor="let opt of descriptionStatusOptions" [ngValue]="opt.value">
+                                {{ opt.labelKey | translate }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="modern-form-actions">
+                    <button class="btn modern-btn-save" type="submit" [disabled]="!editForm.valid">
+                        <i class="bi bi-check-lg me-2"></i>
+                        {{ 'COMMON.SAVE' | translate }}
+                    </button>
+                    <button class="btn modern-btn-cancel" type="button" (click)="cancelForm()">
+                        <i class="bi bi-x-lg me-2"></i>
+                        {{ 'COMMON.CANCEL' | translate }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

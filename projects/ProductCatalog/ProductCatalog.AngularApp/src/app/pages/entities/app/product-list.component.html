@@ -1,0 +1,131 @@
+﻿<!--@AiCode-->
+<div class="list-container">
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 page-header">
+            <h3 class="mb-0 flex-grow-1">
+                <i class="bi bi-box-seam me-2"></i>
+                {{ 'PRODUCT_LIST.TITLE' | translate }}
+            </h3>
+            <a routerLink="/dashboard" class="btn btn-light" title="{{ 'PRODUCT_LIST.BACK_TO_DASHBOARD' | translate }}">
+                <i class="bi bi-arrow-left-circle me-2"></i>
+                <span class="d-none d-md-inline">{{ 'COMMON.BACK' | translate }}</span>
+            </a>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="list-toolbar">
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <button *ngIf="canAdd" class="btn btn-primary" (click)="addCommand()">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        <span class="d-none d-sm-inline">{{ 'PRODUCT_LIST.ADD_ITEM' | translate }}</span>
+                        <span class="d-inline d-sm-none"><i class="bi bi-plus"></i></span>
+                    </button>
+                </div>
+                <div class="col">
+                    <input *ngIf="canSearch" type="text" class="form-control" [(ngModel)]="searchTerm"
+                        [placeholder]="'PRODUCT_LIST.SEARCH_PLACEHOLDER' | translate">
+                </div>
+                <div class="col-auto">
+                    <button *ngIf="canRefresh" class="btn btn-outline-primary" (click)="reloadData()"
+                        title="{{ 'PRODUCT_LIST.REFRESH' | translate }}">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- List Items -->
+        <div class="list-items">
+            <div *ngFor="let item of dataItems" class="modern-list-item">
+
+                <!-- Item Header -->
+                <div class="list-item-header">
+                    <div class="list-item-icon">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="list-item-title">
+                            {{ item.name }}
+                        </h5>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap justify-content-end">
+                        <span class="badge bg-info text-dark">
+                            {{ ('PRODUCT_CATEGORY.' + item.category) | translate }}
+                        </span>
+                        <span class="badge"
+                            [ngClass]="item.descriptionStatus === 2 ? 'bg-success' : item.descriptionStatus === 1 ? 'bg-warning text-dark' : 'bg-secondary'">
+                            {{ ('DESCRIPTION_STATUS.' + item.descriptionStatus) | translate }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <p class="list-item-description" *ngIf="item.description">
+                    {{ item.description }}
+                </p>
+
+                <!-- Details Grid -->
+                <div class="list-item-details">
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="bi bi-currency-euro me-1"></i>
+                            {{ 'PRODUCT_LIST.PRICE' | translate }}:
+                        </span>
+                        <span class="detail-value fw-bold">{{ item.price | number:'1.2-2' }} €</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="detail-label">
+                            <i class="bi bi-archive me-1"></i>
+                            {{ 'PRODUCT_LIST.STOCK' | translate }}:
+                        </span>
+                        <span class="detail-value">
+                            <span class="badge" [ngClass]="item.stock > 0 ? 'bg-success' : 'bg-danger'">
+                                {{ item.stock }}
+                            </span>
+                        </span>
+                    </div>
+
+                    <div class="detail-row" *ngIf="item.tags">
+                        <span class="detail-label">
+                            <i class="bi bi-tags me-1"></i>
+                            {{ 'PRODUCT_LIST.TAGS' | translate }}:
+                        </span>
+                        <span class="detail-value">{{ item.tags }}</span>
+                    </div>
+
+                    <div class="detail-row" *ngIf="item.tone !== null && item.tone !== undefined">
+                        <span class="detail-label">
+                            <i class="bi bi-palette me-1"></i>
+                            {{ 'PRODUCT_LIST.TONE' | translate }}:
+                        </span>
+                        <span class="detail-value">{{ ('PRODUCT_TONE.' + item.tone) | translate }}</span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="list-item-actions">
+                    <button *ngIf="canEdit" class="btn btn-outline-secondary" (click)="editCommand(item)">
+                        <i class="bi bi-pencil me-2"></i>
+                        {{ 'PRODUCT_LIST.EDIT' | translate }}
+                    </button>
+                    <button *ngIf="canDelete" class="btn btn-outline-danger" (click)="deleteCommand(item)">
+                        <i class="bi bi-trash me-2"></i>
+                        {{ 'PRODUCT_LIST.DELETE' | translate }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="dataItems.length === 0" class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <p class="empty-state-text">{{ 'COMMON.NO_DATA' | translate }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+

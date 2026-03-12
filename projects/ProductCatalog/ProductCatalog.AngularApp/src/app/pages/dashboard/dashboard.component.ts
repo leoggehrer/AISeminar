@@ -32,6 +32,7 @@ export class DashboardComponent {
   ];
 
   public authCards: DashboardCard[] = [
+    { visible: true, title: 'DASHBOARD.CARDS.PRODUCTS_TITLE', text: 'DASHBOARD.CARDS.PRODUCTS_TEXT', type: '/products', bg: 'bg-primary text-white', icon: 'bi-box-seam' },
   ];
 
   constructor(

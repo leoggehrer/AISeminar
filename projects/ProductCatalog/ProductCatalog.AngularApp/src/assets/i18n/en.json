@@ -77,6 +77,8 @@
     "YES": "Yes",
     "NO": "No",
     "OK": "OK",
+    "BACK": "Back",
+    "NO_DATA": "No data available",
     "DELETE_CONFIRM": "Do you want to delete the entry '{{item}}'?",
     "DELETE_TITLE": "Confirm Delete"
   },
@@ -103,8 +105,70 @@
     },
     "CARDS": {
       "DASHBOARD_TITLE": "Dashboard",
-      "DASHBOARD_TEXT": "Overview"
+      "DASHBOARD_TEXT": "Overview",
+      "PRODUCTS_TITLE": "Products",
+      "PRODUCTS_TEXT": "Product Management"
     }
+  },
+  "PRODUCT_LIST": {
+    "TITLE": "Products",
+    "ADD_ITEM": "Add Product",
+    "SEARCH_PLACEHOLDER": "Search by name, description or tags...",
+    "REFRESH": "Refresh",
+    "EDIT": "Edit",
+    "DELETE": "Delete",
+    "BACK_TO_DASHBOARD": "Back to Dashboard",
+    "PRICE": "Price",
+    "STOCK": "Stock",
+    "TAGS": "Tags",
+    "TONE": "Tone"
+  },
+  "PRODUCT_EDIT": {
+    "CREATE_TITLE": "Create Product",
+    "EDIT_TITLE": "Edit Product",
+    "BASIC_INFO": "Basic Information",
+    "PRICING_STOCK": "Pricing & Stock",
+    "DETAILS": "Details",
+    "NAME": "Name",
+    "DESCRIPTION": "Description",
+    "TAGS": "Tags",
+    "PRICE": "Price",
+    "STOCK": "Stock",
+    "CATEGORY": "Category",
+    "TONE": "Tone",
+    "DESCRIPTION_STATUS": "Description Status",
+    "NO_TONE": "No Tone",
+    "GENERATE_AI": "Generate AI Description",
+    "GENERATE_AI_TOOLTIP": "Automatically generate description and tags using AI",
+    "GENERATING": "Generating..."
+  },
+  "PRODUCT_CATEGORY": {
+    "0": "Electronics",
+    "1": "Fashion",
+    "2": "Household",
+    "3": "Sports",
+    "4": "Beauty",
+    "ELEKTRONIK": "Electronics",
+    "MODE": "Fashion",
+    "HAUSHALT": "Household",
+    "SPORT": "Sports",
+    "BEAUTY": "Beauty"
+  },
+  "PRODUCT_TONE": {
+    "0": "Luxury",
+    "1": "Casual",
+    "2": "Technical",
+    "LUXURY": "Luxury",
+    "CASUAL": "Casual",
+    "TECHNICAL": "Technical"
+  },
+  "DESCRIPTION_STATUS": {
+    "0": "None",
+    "1": "Generating",
+    "2": "Done",
+    "NONE": "None",
+    "GENERATING": "Generating",
+    "DONE": "Done"
   },
   "MESSAGE_BOX": {
     "TITLE": "Notice",
