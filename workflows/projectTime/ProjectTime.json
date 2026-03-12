@@ -1,0 +1,684 @@
+{
+  "name": "ProjectTime",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc",
+          "mode": "list",
+          "cachedResultName": "Projekte",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Projektstunden",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Projektbereich": "={{ $('Webhook').item.json.body.project }}-{{ $('Webhook').item.json.body.activity }}",
+            "Name": "={{ $('Webhook').item.json.body.project }}",
+            "Bereich": "={{ $('Webhook').item.json.body.activity }}",
+            "Datum": "={{ $('Webhook').item.json.body.date }}",
+            "Stunden": "={{ $('Webhook').item.json.body.totalHours }}",
+            "Kosten": "={{ $('Webhook').item.json.body.totalCosts }}"
+          },
+          "matchingColumns": [
+            "Projektbereich"
+          ],
+          "schema": [
+            {
+              "id": "Projektbereich",
+              "displayName": "Projektbereich",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Bereich",
+              "displayName": "Bereich",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Datum",
+              "displayName": "Datum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Stunden",
+              "displayName": "Stunden",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Kosten",
+              "displayName": "Kosten",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -1488,
+        -32
+      ],
+      "id": "2a25ff89-4e70-45df-9998-5d46b811559d",
+      "name": "UpdateProjectTime",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LxVKSBx57aKmxeFQ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5e8dbfe5-cd88-4d58-ad6d-e1f9a730f69e",
+              "leftValue": "={{ $json.Limit || 0}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "50b806e3-1008-43af-bf0b-39dbd572aea3",
+              "leftValue": "={{ $('UpdateProjectTime').item.json.Stunden }}",
+              "rightValue": "={{ $json.Limit || 0}}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "1af05645-3237-474d-9339-af72829b677a",
+              "leftValue": "={{ $json.Email || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2fd786f1-da28-4daf-bd63-c7b881183d20",
+              "leftValue": "={{ $json.Benachrichtigung || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -816,
+        -32
+      ],
+      "id": "ac37991d-94f4-4af8-815a-75fcf5bf9421",
+      "name": "IfLimit"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -400
+      ],
+      "id": "6fb08fd9-1622-414e-ab0f-ec9252c8d764",
+      "name": "NoOpAfterSend"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -48
+      ],
+      "id": "74b2b8a9-c585-4fcb-a807-10af338a371a",
+      "name": "NoOpAfterUpdateLimit"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        144
+      ],
+      "id": "fcff767c-6188-4b86-8d56-28a7dfabdd68",
+      "name": "NoOpWithoutSend"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc",
+          "mode": "list",
+          "cachedResultName": "Projekts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 707416599,
+          "mode": "list",
+          "cachedResultName": "Projektlimits",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc/edit#gid=707416599"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Projektbereich": "={{ $json.Projektbereich }}",
+            "Name": "={{ $json.Name }}",
+            "Bereich": "={{ $json.Bereich }}"
+          },
+          "matchingColumns": [
+            "Projektbereich"
+          ],
+          "schema": [
+            {
+              "id": "Projektbereich",
+              "displayName": "Projektbereich",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bereich",
+              "displayName": "Bereich",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Limit",
+              "displayName": "Limit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Benachrichtigung",
+              "displayName": "Benachrichtigung",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -1264,
+        -32
+      ],
+      "id": "9a32d723-3e75-4535-8f72-3c875cdcda56",
+      "name": "UpdateProjectLimit",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LxVKSBx57aKmxeFQ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc",
+          "mode": "list",
+          "cachedResultName": "Projekts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 707416599,
+          "mode": "list",
+          "cachedResultName": "Projektlimits",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc/edit#gid=707416599"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Name",
+              "lookupValue": "={{ $json.Name }}"
+            },
+            {
+              "lookupColumn": "Bereich",
+              "lookupValue": "={{ $json.Bereich }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -1040,
+        -32
+      ],
+      "id": "89bc94ce-020f-4135-bb39-c99929613290",
+      "name": "GetProjectLimit",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LxVKSBx57aKmxeFQ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc",
+          "mode": "list",
+          "cachedResultName": "Projekts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 707416599,
+          "mode": "list",
+          "cachedResultName": "Projektlimits",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fD6SxsGjVx6K3Q79jZBDed2eGchySbDKClB8CcO6ZTc/edit#gid=707416599"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Benachrichtigung": "={{ $now }}",
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Projektbereich",
+              "displayName": "Projektbereich",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Bereich",
+              "displayName": "Bereich",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Limit",
+              "displayName": "Limit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Benachrichtigung",
+              "displayName": "Benachrichtigung",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -592,
+        -48
+      ],
+      "id": "423369f6-eb6e-4445-b5e6-b4ea60b1fb95",
+      "name": "UpdateProjectLimitSend",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LxVKSBx57aKmxeFQ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Hier die Daten für die Email:\n\nSender: Ihr persönlicher Projekt-Assistent\nProjekt: {{ $json.Name }}\nBereich: {{ $json.Bereich }}\nLimit: {{ $json.Limit }}\nEmail To: {{ $json.Email }}\nStunden: {{ $('UpdateProjectTime').item.json.Stunden }}",
+        "options": {
+          "systemMessage": "Du bist ein hilfreicher Email Assistent. Schreibe bitte eine Email an den Projektleiter, dass die Grenze für die Kalkulation im Projektbereich überschritten worden ist. Die Form soll höflich und formal sein.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -592,
+        -400
+      ],
+      "id": "93134500-41c9-4919-b6bb-5fb2a66deb5f",
+      "name": "AIAgentForEmail"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "time-record",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1696,
+        -32
+      ],
+      "id": "3a837751-8914-4aab-bfa2-6992ba99e1e4",
+      "name": "Webhook",
+      "webhookId": "df715460-26fd-497a-ab04-f446b59b3c26"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -592,
+        -192
+      ],
+      "id": "9b44fb24-d259-4dd3-a3dc-296d946eba7a",
+      "name": "ChatModel",
+      "credentials": {
+        "openAiApi": {
+          "id": "5OIIM7DHKMF58H3y",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -448,
+        -192
+      ],
+      "id": "3925483e-c617-48bc-a96f-ddf275d91e89",
+      "name": "SendAMessage",
+      "webhookId": "c613c45b-1e45-4036-93b7-ea36b01dfa0a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "fsiRrLA01UVFV7t3",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "UpdateProjectTime": {
+      "main": [
+        [
+          {
+            "node": "UpdateProjectLimit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IfLimit": {
+      "main": [
+        [
+          {
+            "node": "UpdateProjectLimitSend",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AIAgentForEmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NoOpWithoutSend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UpdateProjectLimit": {
+      "main": [
+        [
+          {
+            "node": "GetProjectLimit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetProjectLimit": {
+      "main": [
+        [
+          {
+            "node": "IfLimit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UpdateProjectLimitSend": {
+      "main": [
+        [
+          {
+            "node": "NoOpAfterUpdateLimit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AIAgentForEmail": {
+      "main": [
+        [
+          {
+            "node": "NoOpAfterSend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "UpdateProjectTime",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatModel": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AIAgentForEmail",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendAMessage": {
+      "ai_tool": [
+        [
+          {
+            "node": "AIAgentForEmail",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "41564aec-8dde-4e14-ad65-9f73eca73841",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "22bd81bfa1a72323630d7407aff8a80689ded5a00bef479364b80aa6bab2f598"
+  },
+  "id": "b8UBtTz0uKNTB39A",
+  "tags": []
+}
