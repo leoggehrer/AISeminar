@@ -5,6 +5,7 @@
 **Name**: Seminar
 
 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
+
 ## Google API Key
 
 **Name**: n8n
