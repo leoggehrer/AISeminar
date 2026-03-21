@@ -1,0 +1,481 @@
+---
+name: Sonniger Gruß
+kategorie: Niedrigpreis
+preis: 50.04
+tags: Gelb, Fröhlich, Sommer
+anlass: Geburtstag, Danke, Aufmunterung
+artikel: B1018 Sonnenblume 3×; B1075 Tulpe Gelb 5×
+beschreibung: Ein strahlender Strauß aus Sonnenblumen und gelben Tulpen – perfekt für sonnige Grüße.
+---
+name: Romantische Rosen
+kategorie: Mittelpreis
+preis: 144.24
+tags: Rot, Romantisch, Liebe
+anlass: Valentinstag, Jahrestag, Romantik
+artikel: B1006 Rote Rose 5×; B1071 Rote Rose 3×; B1078 Nelke Rosa 4×
+beschreibung: Ein klassisch-romantischer Strauß aus roten Rosen mit rosa Nelken-Akzenten.
+---
+name: Weiße Eleganz
+kategorie: Hochpreis
+preis: 260.31
+tags: Weiß, Elegant, Premium
+anlass: Hochzeit, Trauer, Feierlich
+artikel: B1038 Weiße Lilie 5×; B1013 Weiße Lilie 3×
+beschreibung: Ein majestätischer Strauß aus reinweißen Lilien für besondere Anlässe.
+---
+name: Bunter Wiesentraum
+kategorie: Niedrigpreis
+preis: 61.63
+tags: Bunt, Fröhlich, Natürlich
+anlass: Geburtstag, Danke, Gute Besserung
+artikel: B1066 Tulpe Gelb 4×; B1072 Rote Rose 3×; B1078 Nelke Rosa 5×
+beschreibung: Ein farbenfroher Mix aus Tulpen, Rosen und Nelken – wie frisch von der Wiese gepflückt.
+---
+name: Sommerfreude
+kategorie: Mittelpreis
+preis: 186.99
+tags: Gelb, Rosa, Sommer
+anlass: Geburtstag, Einweihung, Danke
+artikel: B1057 Sonnenblume 3×; B1037 Tulpe Gelb 4×; B1083 Nelke Rosa 2×
+beschreibung: Ein sommerlicher Strauß mit Sonnenblumen, Tulpen und Nelken in warmen Farben.
+---
+name: Rosentraum Deluxe
+kategorie: Hochpreis
+preis: 295.27
+tags: Rot, Premium, Leidenschaft
+anlass: Valentinstag, Heiratsantrag, Jubiläum
+artikel: B1023 Rote Rose 7×; B1047 Rote Rose 5×; B1006 Rote Rose 3×
+beschreibung: Ein opulenter Strauß aus 15 edlen roten Rosen – die Sprache der Liebe.
+---
+name: Frühlingserwachen
+kategorie: Niedrigpreis
+preis: 71.50
+tags: Gelb, Frühling, Frisch
+anlass: Ostern, Frühling, Aufmunterung
+artikel: B1075 Tulpe Gelb 6×; B1091 Tulpe Gelb 4×
+beschreibung: Ein frischer Tulpenstrauß, der den Frühling ins Haus bringt.
+---
+name: Lilien & Rosen
+kategorie: Mittelpreis
+preis: 119.78
+tags: Weiß, Rot, Klassisch
+anlass: Geburtstag, Danke, Neutral
+artikel: B1020 Weiße Lilie 3×; B1064 Rote Rose 5×; B1079 Weiße Lilie 2×
+beschreibung: Eine klassische Kombination aus weißen Lilien und roten Rosen.
+---
+name: Hochzeitstraum
+kategorie: Hochpreis
+preis: 212.03
+tags: Weiß, Hochzeit, Reinheit
+anlass: Hochzeit, Taufe, Kommunion
+artikel: B1093 Weiße Lilie 4×; B1038 Weiße Lilie 3×; B1080 Weiße Lilie 2×
+beschreibung: Ein atemberaubender Strauß aus reinweißen Lilien für den schönsten Tag.
+---
+name: Rosa Zauber
+kategorie: Niedrigpreis
+preis: 71.54
+tags: Rosa, Zart, Feminin
+anlass: Muttertag, Geburtstag, Danke
+artikel: B1078 Nelke Rosa 7×; B1065 Nelke Rosa 3×
+beschreibung: Ein zarter Strauß aus rosa Nelken – zeitlos schön und duftend.
+---
+name: Sonnenschein Mix
+kategorie: Mittelpreis
+preis: 127.78
+tags: Gelb, Strahlend, Fröhlich
+anlass: Geburtstag, Gute Besserung, Einweihung
+artikel: B1002 Sonnenblume 4×; B1014 Sonnenblume 3×; B1039 Sonnenblume 2×
+beschreibung: Ein strahlender Sonnenblumenstrauß, der jedes Zimmer erhellt.
+---
+name: Premium Rosen & Lilien
+kategorie: Hochpreis
+preis: 259.82
+tags: Rot, Weiß, Luxus
+anlass: Jubiläum, Beförderung, Besondere Anlässe
+artikel: B1006 Rote Rose 5×; B1023 Rote Rose 4×; B1013 Weiße Lilie 3×
+beschreibung: Eine luxuriöse Kombination aus roten Rosen und weißen Lilien.
+---
+name: Tulpen Vielfalt
+kategorie: Niedrigpreis
+preis: 105.27
+tags: Gelb, Frühling, Vielfältig
+anlass: Ostern, Frühling, Danke
+artikel: B1082 Tulpe Gelb 3×; B1066 Tulpe Gelb 5×
+beschreibung: Ein vielfältiger Tulpenstrauß in verschiedenen Gelbtönen.
+---
+name: Nelken Bouquet
+kategorie: Mittelpreis
+preis: 215.31
+tags: Rosa, Duftend, Elegant
+anlass: Muttertag, Geburtstag, Danke
+artikel: B1035 Nelke Rosa 4×; B1042 Nelke Rosa 3×; B1083 Nelke Rosa 2×
+beschreibung: Ein duftendes Bouquet aus edlen rosa Nelken.
+---
+name: Königlicher Strauß
+kategorie: Hochpreis
+preis: 335.70
+tags: Premium, Luxus, Exklusiv
+anlass: Jubiläum, Heiratsantrag, VIP-Geschenk
+artikel: B1047 Rote Rose 6×; B1038 Weiße Lilie 4×; B1042 Nelke Rosa 2×
+beschreibung: Ein königlicher Strauß für besondere Momente – Rosen, Lilien und edle Nelken vereint.
+---
+name: Amber Delight
+kategorie: Niedrigpreis
+preis: 48.28
+tags: Gelb, Warm, Natürlich
+anlass: Geburtstag, Danke, Aufmunterung
+artikel: B1075 Tulpe Gelb 6×; B1039 Sonnenblume 2×
+beschreibung: Ein warmer, natürlicher Strauß mit sonnigen Farben.
+---
+name: Crimson Glory
+kategorie: Mittelpreis
+preis: 154.65
+tags: Rot, Romantik, Klassisch
+anlass: Valentinstag, Jahrestag, Romantik
+artikel: B1006 Rote Rose 4×; B1047 Rote Rose 3×; B1078 Nelke Rosa 5×
+beschreibung: Ein romantischer Strauß aus tiefroten Rosen und rosa Nelken-Akzenten.
+---
+name: Violet Echo
+kategorie: Hochpreis
+preis: 252.28
+tags: Rosa, Weiß, Elegant
+anlass: Hochzeit, Taufe, Besondere Anlässe
+artikel: B1063 Nelke Rosa 5×; B1093 Weiße Lilie 3×
+beschreibung: Ein eleganter Strauß aus rosa Nelken und weißen Lilien.
+---
+name: Bloomfire
+kategorie: Niedrigpreis
+preis: 62.94
+tags: RotGelb, Energie, Fröhlich
+anlass: Geburtstag, Gute Besserung, Danke
+artikel: B1085 Sonnenblume 4×; B1072 Rote Rose 3×; B1078 Nelke Rosa 2×
+beschreibung: Ein leuchtender Strauß mit feurigem Charme aus Sonnenblumen und Rosen.
+---
+name: Pearl Garden
+kategorie: Mittelpreis
+preis: 122.04
+tags: Weiß, Rein, Klassisch
+anlass: Hochzeit, Trauer, Feierlich
+artikel: B1020 Weiße Lilie 4×; B1043 Weiße Lilie 3×; B1099 Weiße Lilie 5×
+beschreibung: Ein klassischer Strauß aus reinweißen Lilien – zeitlose Eleganz.
+---
+name: Golden Drift
+kategorie: Niedrigpreis
+preis: 64.63
+tags: Gelb, Gold, Natürlich
+anlass: Geburtstag, Danke, Aufmunterung
+artikel: B1075 Tulpe Gelb 3×; B1085 Sonnenblume 4×; B1066 Tulpe Gelb 2×
+beschreibung: Ein warmer Strauß in goldenen Tönen aus Tulpen und Sonnenblumen.
+---
+name: Spring Sunrise
+kategorie: Mittelpreis
+preis: 207.80
+tags: Frühling, Gelb, Rot
+anlass: Ostern, Frühling, Geburtstag
+artikel: B1037 Tulpe Gelb 5×; B1082 Tulpe Gelb 3×; B1064 Rote Rose 2×
+beschreibung: Ein lebendiger Frühlingsstrauß voller Licht und Energie.
+---
+name: Gentle Spring
+kategorie: Hochpreis
+preis: 245.73
+tags: Frühling, Weiß, Rosa
+anlass: Hochzeit, Muttertag, Besondere Anlässe
+artikel: B1042 Nelke Rosa 4×; B1038 Weiße Lilie 3×
+beschreibung: Ein sanftes Arrangement mit ruhiger Ausstrahlung aus Nelken und Lilien.
+---
+name: Ocean Breeze
+kategorie: Niedrigpreis
+preis: 40.85
+tags: Weiß, Frisch, Simpel
+anlass: Trauer, Beileid, Neutral
+artikel: B1079 Weiße Lilie 4×; B1099 Weiße Lilie 3×
+beschreibung: Ein schlichter, eleganter Strauß aus weißen Lilien.
+---
+name: Amber Sunfire
+kategorie: Hochpreis
+preis: 242.86
+tags: Sommer, Warm, Premium
+anlass: Einweihung, Geburtstag, Danke
+artikel: B1059 Sonnenblume 5×; B1041 Sonnenblume 4×
+beschreibung: Ein kraftvoller, warmer Sommerstrauß aus prächtigen Sonnenblumen.
+---
+name: Autumn Whisper
+kategorie: Mittelpreis
+preis: 181.52
+tags: Herbst, Warm, Natürlich
+anlass: Erntedank, Geburtstag, Danke
+artikel: B1057 Sonnenblume 4×; B1071 Rote Rose 5×; B1049 Nelke Rosa 2×
+beschreibung: Ein herbstlicher Strauß mit warmen Farben aus Sonnenblumen, Rosen und Nelken.
+---
+name: Harvest Flame
+kategorie: Niedrigpreis
+preis: 37.02
+tags: Herbst, Gelb, Budget
+anlass: Danke, Aufmunterung, Neutral
+artikel: B1075 Tulpe Gelb 4×; B1018 Sonnenblume 2×
+beschreibung: Ein goldener Herbststrauß mit frischen Akzenten.
+---
+name: Frosty Whisper
+kategorie: Mittelpreis
+preis: 109.93
+tags: Winter, Weiß, Rosa
+anlass: Weihnachten, Geburtstag, Danke
+artikel: B1099 Weiße Lilie 4×; B1083 Nelke Rosa 3×; B1079 Weiße Lilie 5×
+beschreibung: Ein eleganter Winterstrauß mit kühlen Weiß- und Rosatönen.
+---
+name: Snowlight Arrangement
+kategorie: Hochpreis
+preis: 262.87
+tags: Winter, Weiß, Premium
+anlass: Hochzeit, Weihnachten, Besondere Anlässe
+artikel: B1038 Weiße Lilie 4×; B1093 Weiße Lilie 3×; B1013 Weiße Lilie 2×
+beschreibung: Eine strahlend weiße Komposition für winterliche Eleganz.
+---
+name: Velvet Harmony
+kategorie: Hochpreis
+preis: 277.68
+tags: Luxus, Rot, Elegant
+anlass: Valentinstag, Heiratsantrag, Jubiläum
+artikel: B1047 Rote Rose 6×; B1023 Rote Rose 4×; B1078 Nelke Rosa 8×; B1006 Rote Rose 2×
+beschreibung: Ein edler Premiumstrauß aus 12 roten Rosen mit zarten Nelken-Akzenten.
+---
+name: Urban Elegance
+kategorie: Niedrigpreis
+preis: 48.04
+tags: Modern, Simpel, Budget
+anlass: Danke, Geburtstag, Neutral
+artikel: B1072 Rote Rose 5×; B1078 Nelke Rosa 4×
+beschreibung: Ein stilvoller, moderner Strauß zum kleinen Preis.
+---
+name: Golden Majesty
+kategorie: Hochpreis
+preis: 327.43
+tags: Premium, Gold, Luxus
+anlass: VIP-Geschenk, Firmenevent, Besondere Anlässe
+artikel: B1059 Sonnenblume 3×; B1041 Sonnenblume 3×; B1038 Weiße Lilie 2×; B1082 Tulpe Gelb 4×
+beschreibung: Ein königlicher Strauß mit leuchtenden Sonnenblumen, Tulpen und weißen Lilien.
+---
+name: Imperial Rose
+kategorie: Mittelpreis
+preis: 163.64
+tags: Rot, Romantik, Klassisch
+anlass: Valentinstag, Jahrestag, Romantik
+artikel: B1047 Rote Rose 5×; B1071 Rote Rose 3×; B1078 Nelke Rosa 4×
+beschreibung: Ein tief romantischer Strauß aus edlen roten Rosen mit Nelken-Akzenten.
+---
+name: Wild Meadow
+kategorie: Niedrigpreis
+preis: 45.49
+tags: Bunt, Wiese, Natürlich
+anlass: Geburtstag, Danke, Neutral
+artikel: B1066 Tulpe Gelb 3×; B1078 Nelke Rosa 4×; B1072 Rote Rose 2×
+beschreibung: Ein natürlicher Mix aus Tulpen, Nelken und Rosen.
+---
+name: Woodland Spirit
+kategorie: Mittelpreis
+preis: 152.11
+tags: Natürlich, Frisch, Bunt
+anlass: Geburtstag, Danke, Einweihung
+artikel: B1002 Sonnenblume 3×; B1020 Weiße Lilie 4×; B1083 Nelke Rosa 2×
+beschreibung: Ein harmonischer Strauß aus Sonnenblumen, Lilien und Nelken.
+---
+name: Citrus Glow
+kategorie: Niedrigpreis
+preis: 95.43
+tags: Gelb, Sommer, Fröhlich
+anlass: Geburtstag, Gute Besserung, Danke
+artikel: B1082 Tulpe Gelb 2×; B1018 Sonnenblume 3×; B1075 Tulpe Gelb 4×
+beschreibung: Ein frischer, sonniger Strauß voller Energie.
+---
+name: Pink Delight
+kategorie: Mittelpreis
+preis: 206.31
+tags: Pink, Duftend, Feminin
+anlass: Muttertag, Geburtstag, Danke
+artikel: B1035 Nelke Rosa 5×; B1083 Nelke Rosa 4×; B1065 Nelke Rosa 3×
+beschreibung: Ein duftendes Arrangement in femininen Rosatönen.
+---
+name: Metro Roseline
+kategorie: Hochpreis
+preis: 288.77
+tags: Rot, Premium, Romantik
+anlass: Valentinstag, Heiratsantrag, Jubiläum
+artikel: B1006 Rote Rose 6×; B1023 Rote Rose 5×; B1047 Rote Rose 4×
+beschreibung: Ein strukturierter Rosenstrauß aus 15 edlen roten Rosen.
+---
+name: Skyline Bloom
+kategorie: Niedrigpreis
+preis: 77.89
+tags: Bunt, Modern, Frisch
+anlass: Geburtstag, Danke, Neutral
+artikel: B1071 Rote Rose 4×; B1075 Tulpe Gelb 3×; B1078 Nelke Rosa 2×
+beschreibung: Ein moderner Strauß mit roten Rosen, gelben Tulpen und rosa Nelken.
+---
+name: Ivory Harmony
+kategorie: Mittelpreis
+preis: 132.25
+tags: Weiß, Elegant, Hochzeit
+anlass: Hochzeit, Taufe, Kommunion
+artikel: B1099 Weiße Lilie 5×; B1038 Weiße Lilie 2×; B1043 Weiße Lilie 4×
+beschreibung: Ein harmonischer Strauß aus reinweißen Lilien.
+---
+name: Crimson Pearl
+kategorie: Hochpreis
+preis: 276.40
+tags: Rot, Gelb, Premium
+anlass: Jubiläum, Geburtstag, Besondere Anlässe
+artikel: B1047 Rote Rose 5×; B1059 Sonnenblume 3×; B1023 Rote Rose 4×
+beschreibung: Ein kraftvoller, warm leuchtender Premiumstrauß aus Rosen und Sonnenblumen.
+---
+name: Amber Drift
+kategorie: Niedrigpreis
+preis: 74.94
+tags: Sommer, Gelb, Budget
+anlass: Geburtstag, Danke, Aufmunterung
+artikel: B1018 Sonnenblume 4×; B1075 Tulpe Gelb 5×; B1066 Tulpe Gelb 3×
+beschreibung: Ein leichter, sommerlicher Strauß mit warmen Gelbtönen.
+---
+name: Frost Garden
+kategorie: Mittelpreis
+preis: 91.82
+tags: Winter, Weiß, Rosa
+anlass: Weihnachten, Geburtstag, Neutral
+artikel: B1099 Weiße Lilie 5×; B1020 Weiße Lilie 3×; B1078 Nelke Rosa 4×
+beschreibung: Ein elegantes, kühles Arrangement für die Winterzeit.
+---
+name: Crimson Spark
+kategorie: Mittelpreis
+preis: 199.28
+tags: Romantik, Rot, Elegant
+anlass: Valentinstag, Jahrestag, Romantik
+artikel: B1047 Rote Rose 3×; B1071 Rote Rose 4×; B1083 Nelke Rosa 3×; B1064 Rote Rose 2×
+beschreibung: Ein starkes romantisches Bouquet mit edlen roten Rosen und Nelken.
+---
+name: Fresh Horizon
+kategorie: Niedrigpreis
+preis: 44.97
+tags: Gelb, Frisch, Budget
+anlass: Danke, Aufmunterung, Neutral
+artikel: B1039 Sonnenblume 3×; B1075 Tulpe Gelb 4×
+beschreibung: Ein frischer Strauß aus Sonnenblumen und Tulpen.
+---
+name: Desert Pearl
+kategorie: Hochpreis
+preis: 254.85
+tags: Gelb, Premium, Sommer
+anlass: Einweihung, Firmenevent, Geburtstag
+artikel: B1041 Sonnenblume 5×; B1056 Sonnenblume 4×; B1082 Tulpe Gelb 3×
+beschreibung: Ein moderner Strauß mit strahlenden Sonnenblumen und Tulpen.
+---
+name: Rosewood Classic
+kategorie: Mittelpreis
+preis: 167.65
+tags: Romantik, Klassisch, Rot
+anlass: Valentinstag, Jahrestag, Romantik
+artikel: B1047 Rote Rose 6×; B1072 Rote Rose 4×; B1078 Nelke Rosa 3×
+beschreibung: Ein traditionelles, warmes Bouquet aus roten Rosen und Nelken.
+---
+name: Ocean Harmony
+kategorie: Niedrigpreis
+preis: 52.45
+tags: Weiß, Ruhig, Simpel
+anlass: Trauer, Beileid, Neutral
+artikel: B1079 Weiße Lilie 5×; B1099 Weiße Lilie 4×
+beschreibung: Ein schlichter Strauß aus weißen Lilien mit beruhigender Ausstrahlung.
+---
+name: Sunflare Mix
+kategorie: Hochpreis
+preis: 298.11
+tags: Gelb, Energie, Sommer
+anlass: Firmenevent, Einweihung, Geburtstag
+artikel: B1059 Sonnenblume 4×; B1041 Sonnenblume 3×; B1002 Sonnenblume 2×; B1082 Tulpe Gelb 3×
+beschreibung: Ein strahlend gelbes Premium-Arrangement voller Lebenskraft.
+---
+name: Pearl White
+kategorie: Mittelpreis
+preis: 154.47
+tags: Weiß, Hochzeit, Elegant
+anlass: Hochzeit, Taufe, Besondere Anlässe
+artikel: B1038 Weiße Lilie 3×; B1099 Weiße Lilie 4×; B1020 Weiße Lilie 2×
+beschreibung: Ein puristischer Weißstrauß mit Hochzeitscharakter.
+---
+name: Mountain Breeze
+kategorie: Niedrigpreis
+preis: 86.80
+tags: Natürlich, Frisch, Gelb
+anlass: Geburtstag, Danke, Aufmunterung
+artikel: B1014 Sonnenblume 3×; B1091 Tulpe Gelb 4×
+beschreibung: Ein luftiger, natürlicher Strauß mit klarer Frische.
+---
+name: Velvet Spring
+kategorie: Mittelpreis
+preis: 106.58
+tags: Frühling, Pastell, Weich
+anlass: Ostern, Frühling, Geburtstag
+artikel: B1078 Nelke Rosa 5×; B1018 Sonnenblume 3×; B1099 Weiße Lilie 4×; B1037 Tulpe Gelb 2×
+beschreibung: Ein sanfter Frühlingsstrauß in zarten Farben.
+---
+name: Ruby Highland
+kategorie: Hochpreis
+preis: 238.00
+tags: Rot, Premium, Klassisch
+anlass: Valentinstag, Heiratsantrag, Jubiläum
+artikel: B1047 Rote Rose 5×; B1023 Rote Rose 4×; B1006 Rote Rose 3×
+beschreibung: Ein tiefes, kräftiges Rosenbouquet mit Premium-Anmutung.
+---
+name: Fresh Meadow
+kategorie: Niedrigpreis
+preis: 83.82
+tags: Wiese, Frisch, Gelb
+anlass: Ostern, Frühling, Danke
+artikel: B1082 Tulpe Gelb 2×; B1075 Tulpe Gelb 6×
+beschreibung: Ein natürlicher Tulpenstrauß in lebendigen Farben.
+---
+name: Arctic Shine
+kategorie: Hochpreis
+preis: 252.13
+tags: Winter, Luxus, Weiß
+anlass: Hochzeit, Weihnachten, Besondere Anlässe
+artikel: B1093 Weiße Lilie 4×; B1038 Weiße Lilie 3×; B1013 Weiße Lilie 2×
+beschreibung: Ein edles, kühles Winterbouquet aus reinweißen Lilien.
+---
+name: Coral Mist
+kategorie: Niedrigpreis
+preis: 56.87
+tags: Pink, Feminin, Soft
+anlass: Muttertag, Geburtstag, Danke
+artikel: B1078 Nelke Rosa 5×; B1083 Nelke Rosa 2×
+beschreibung: Ein sanfter Strauß in zarten Rosatönen aus Nelken.
+---
+name: Spring Calm
+kategorie: Mittelpreis
+preis: 176.78
+tags: Frühling, Bunt, Natürlich
+anlass: Ostern, Geburtstag, Danke
+artikel: B1037 Tulpe Gelb 4×; B1083 Nelke Rosa 3×; B1020 Weiße Lilie 2×
+beschreibung: Ein ruhiges, geerdetes Frühlingsarrangement mit Tulpen, Nelken und Lilien.
+---
+name: Crystal Touch
+kategorie: Hochpreis
+preis: 259.61
+tags: Weiß, Premium, Klar
+anlass: Hochzeit, Taufe, Besondere Anlässe
+artikel: B1013 Weiße Lilie 4×; B1093 Weiße Lilie 3×; B1038 Weiße Lilie 2×
+beschreibung: Ein strahlend weißes Premiumbouquet für feierliche Anlässe.
+---
+name: Bloomfire Plus
+kategorie: Mittelpreis
+preis: 166.45
+tags: RotGelb, Kontrast, Energie
+anlass: Geburtstag, Danke, Neutral
+artikel: B1057 Sonnenblume 4×; B1047 Rote Rose 3×; B1078 Nelke Rosa 5×
+beschreibung: Ein kraftvoller Strauß mit feurigem Charme aus Sonnenblumen, Rosen und Nelken.
+---
+name: Gentle Whisper
+kategorie: Hochpreis
+preis: 324.05
+tags: Rosa, Weiß, Premium
+anlass: Hochzeit, Muttertag, Besondere Anlässe
+artikel: B1063 Nelke Rosa 4×; B1042 Nelke Rosa 3×; B1038 Weiße Lilie 2×
+beschreibung: Ein edles Bouquet voller Zartheit aus rosa Nelken und weißen Lilien.
+---
