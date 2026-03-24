@@ -1,0 +1,105 @@
+<!--@Ignore-->
+<div class="list-container px-3 pt-3">
+
+  <!-- Page Header -->
+  <div class="page-header d-flex align-items-center justify-content-between p-3 mb-3">
+    <h2 class="mb-0">{{ 'BLOG_ENTRY_LIST.TITLE' | translate }}</h2>
+    <button class="btn btn-link text-white p-0 btn-back"
+            (click)="goBack()"
+            title="{{ 'COMMON.BACK' | translate }}">
+      <i class="bi bi-arrow-left-circle-fill fs-5"></i>
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="list-toolbar d-flex align-items-center gap-2">
+    @if (canAdd) {
+      <button class="btn btn-primary btn-sm"
+              (click)="addCommand()"
+              title="{{ 'BLOG_ENTRY_LIST.ADD_ITEM' | translate }}">
+        <i class="bi bi-plus-lg"></i>
+      </button>
+    }
+    <div class="flex-grow-1">
+      <input type="text"
+             class="form-control form-control-sm modern-form-control"
+             [(ngModel)]="searchTerm"
+             placeholder="{{ 'BLOG_ENTRY_LIST.SEARCH_PLACEHOLDER' | translate }}"
+             title="{{ 'COMMON.SEARCH' | translate }}" />
+    </div>
+    <button class="btn btn-outline-secondary btn-sm"
+            (click)="refreshCommand()"
+            title="{{ 'COMMON.REFRESH' | translate }}">
+      <i class="bi bi-arrow-clockwise"></i>
+    </button>
+  </div>
+
+  <!-- List Items -->
+  @if (dataItems && dataItems.length > 0) {
+    @for (item of dataItems; track item.id ?? $index) {
+      <div class="modern-list-item">
+        <div class="list-item-header d-flex align-items-start justify-content-between">
+          <div>
+            <span class="fw-semibold">{{ item.title }}</span>
+            @if (item.isPublished) {
+              <span class="badge bg-success ms-2">{{ 'BLOG_ENTRY_LIST.PUBLISHED' | translate }}</span>
+            } @else {
+              <span class="badge bg-secondary ms-2">{{ 'BLOG_ENTRY_LIST.DRAFT' | translate }}</span>
+            }
+          </div>
+          <div class="list-item-actions">
+            @if (canEdit) {
+              <button class="btn btn-sm btn-outline-primary"
+                      (click)="editCommand(item)"
+                      title="{{ 'COMMON.EDIT' | translate }}">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
+            }
+            @if (canDelete) {
+              <button class="btn btn-sm btn-outline-danger ms-1"
+                      (click)="deleteCommand(item)"
+                      title="{{ 'COMMON.DELETE' | translate }}">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            }
+          </div>
+        </div>
+        <div class="list-item-details">
+          <div class="text-muted small mb-1">
+            <i class="bi bi-person-fill me-1"></i>{{ item.author }}
+            @if (item.publishedOn) {
+              <span class="ms-3">
+                <i class="bi bi-calendar-event me-1"></i>{{ item.publishedOn | date:'dd.MM.yyyy' }}
+              </span>
+            }
+          </div>
+          @if (item.summary) {
+            <div class="text-muted small">{{ item.summary }}</div>
+          }
+          @if (item.tags) {
+            <div class="mt-1">
+              <i class="bi bi-tags-fill me-1 text-secondary small"></i>
+              <span class="small text-secondary">{{ item.tags }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  } @else {
+    <!-- Empty State -->
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <i class="bi bi-journal-text"></i>
+      </div>
+      <div class="empty-state-text">{{ 'BLOG_ENTRY_LIST.EMPTY' | translate }}</div>
+      @if (canAdd) {
+        <button class="btn btn-primary btn-sm mt-2"
+                (click)="addCommand()"
+                title="{{ 'BLOG_ENTRY_LIST.ADD_ITEM' | translate }}">
+          <i class="bi bi-plus-circle-fill me-1"></i>{{ 'BLOG_ENTRY_LIST.ADD_ITEM' | translate }}
+        </button>
+      }
+    </div>
+  }
+
+</div>

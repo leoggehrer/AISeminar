@@ -1,0 +1,36 @@
+<!--@BaseCode-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>ACCOUNT_OFF;IDINT_ON;IDLONG_OFF;IDGUID_OFF;ROWVERSION_OFF;EXTERNALGUID_OFF;POSTGRES_OFF;SQLSERVER_OFF;SQLITE_ON;DOCKER_OFF;DEVELOP_ON;DBOPERATION_ON;GENERATEDCODE_OFF</DefineConstants>
+  </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<NoWarn>1701;1702</NoWarn>
+		<WarningsAsErrors>$(WarningsAsErrors);NU1605;CA2000</WarningsAsErrors>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<NoWarn>1701;1702</NoWarn>
+		<WarningsAsErrors>$(WarningsAsErrors);NU1605;CA2000</WarningsAsErrors>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.3" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.3" />
+	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SETemplate.Common\SETemplate.Common.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,133 @@
+<!--@Ignore-->
+<div class="modern-edit-card">
+
+    <!-- Header -->
+    <div class="modern-edit-header d-flex align-items-center justify-content-between">
+      <h4>
+        <i class="bi bi-journal-text me-2"></i>{{ title | translate }}
+      </h4>
+      <button type="button" class="btn-close-custom" (click)="cancelForm()" title="{{ 'COMMON.CLOSE' | translate }}">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modern-edit-body">
+      @if (dataItem) {
+
+        <!-- Section: Basic Info -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="bi bi-info-circle"></i>{{ 'BLOG_ENTRY_EDIT.SECTION_BASIC' | translate }}
+          </div>
+
+          <div class="modern-form-group">
+            <label class="modern-form-label" for="blogTitle">
+              <i class="bi bi-type-h1"></i>{{ 'BLOG_ENTRY_EDIT.TITLE_LABEL' | translate }} *
+            </label>
+            <input id="blogTitle" type="text"
+                   class="form-control modern-form-control"
+                   [(ngModel)]="dataItem.title"
+                   maxlength="256" required />
+          </div>
+
+          <div class="modern-form-group">
+            <label class="modern-form-label" for="blogAuthor">
+              <i class="bi bi-person"></i>{{ 'BLOG_ENTRY_EDIT.AUTHOR_LABEL' | translate }} *
+            </label>
+            <input id="blogAuthor" type="text"
+                   class="form-control modern-form-control"
+                   [(ngModel)]="dataItem.author"
+                   maxlength="128" required />
+          </div>
+
+          <div class="modern-form-group">
+            <label class="modern-form-label" for="blogSummary">
+              <i class="bi bi-text-left"></i>{{ 'BLOG_ENTRY_EDIT.SUMMARY_LABEL' | translate }}
+            </label>
+            <textarea id="blogSummary"
+                      class="form-control modern-form-control"
+                      [(ngModel)]="dataItem.summary"
+                      rows="2" maxlength="512"></textarea>
+          </div>
+
+          <div class="modern-form-group">
+            <label class="modern-form-label" for="blogTags">
+              <i class="bi bi-tags"></i>{{ 'BLOG_ENTRY_EDIT.TAGS_LABEL' | translate }}
+            </label>
+            <input id="blogTags" type="text"
+                   class="form-control modern-form-control"
+                   [(ngModel)]="dataItem.tags"
+                   maxlength="256"
+                   [placeholder]="'BLOG_ENTRY_EDIT.TAGS_PLACEHOLDER' | translate" />
+          </div>
+        </div>
+
+        <!-- Section: Content -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="bi bi-file-text"></i>{{ 'BLOG_ENTRY_EDIT.SECTION_CONTENT' | translate }}
+          </div>
+
+          <div class="modern-form-group">
+            <label class="modern-form-label" for="blogContent">
+              <i class="bi bi-pencil-square"></i>{{ 'BLOG_ENTRY_EDIT.CONTENT_LABEL' | translate }} *
+            </label>
+            <textarea id="blogContent"
+                      class="form-control modern-form-control"
+                      [(ngModel)]="dataItem.content"
+                      rows="8" required></textarea>
+          </div>
+        </div>
+
+        <!-- Section: Publication -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <i class="bi bi-send"></i>{{ 'BLOG_ENTRY_EDIT.SECTION_PUBLICATION' | translate }}
+          </div>
+
+          <div class="modern-form-group">
+            <div class="modern-form-check">
+              <input id="blogIsPublished" type="checkbox"
+                     class="modern-form-check-input"
+                     [(ngModel)]="dataItem.isPublished" />
+              <label class="modern-form-check-label" for="blogIsPublished">
+                {{ 'BLOG_ENTRY_EDIT.IS_PUBLISHED_LABEL' | translate }}
+              </label>
+            </div>
+          </div>
+
+          <div class="modern-form-group">
+            <label class="modern-form-label" for="blogPublishedOn">
+              <i class="bi bi-calendar-event"></i>{{ 'BLOG_ENTRY_EDIT.PUBLISHED_ON_LABEL' | translate }}
+            </label>
+            <input id="blogPublishedOn" type="date"
+                   class="form-control modern-form-control"
+                   [ngModel]="getDateString('publishedOn')"
+                   (ngModelChange)="setDateString('publishedOn', $event)" />
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="modern-form-actions">
+          <button type="button" class="btn modern-btn-cancel"
+                  (click)="cancelForm()"
+                  title="{{ 'COMMON.CANCEL' | translate }}">
+            <i class="bi bi-x-circle me-1"></i>{{ 'COMMON.CANCEL' | translate }}
+          </button>
+          <button type="button" class="btn modern-btn-save"
+                  (click)="submitForm()"
+                  [disabled]="saveData"
+                  title="{{ 'COMMON.SAVE' | translate }}">
+            @if (saveData) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            } @else {
+              <i class="bi bi-check-circle me-1"></i>
+            }
+            {{ 'COMMON.SAVE' | translate }}
+          </button>
+        </div>
+
+      }
+    </div>
+</div>
