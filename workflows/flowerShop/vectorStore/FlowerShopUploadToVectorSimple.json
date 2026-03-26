@@ -1,0 +1,500 @@
+{
+  "updatedAt": "2026-03-22T12:42:17.005Z",
+  "createdAt": "2026-03-22T12:39:43.743Z",
+  "id": "X4nHx3FOgR22YlQN",
+  "name": "FlowerShopUploadToVectorSimple",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "FlowerShop – Datei zu Vector",
+        "formDescription": "Laden Sie eine Konfigurationsdatei hoch, um sie in den Vektorspeicher zu importieren.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Datei",
+              "fieldType": "file",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        1808,
+        2848
+      ],
+      "id": "931fcf5c-9a5e-41e2-ac36-f452f49148a6",
+      "name": "FormUpload",
+      "webhookId": "13579e96-f6e7-4493-bfdb-342531d872cd"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7d8e9f0-1a2b-3c4d-5e6f-7a8b9c0d1e2f",
+              "name": "file_id",
+              "value": "={{ $('FormUpload').item.json.Datei[0].filename }}",
+              "type": "string"
+            },
+            {
+              "id": "d8e9f0a1-2b3c-4d5e-6f7a-8b9c0d1e2f3a",
+              "name": "file_type",
+              "value": "={{ $('FormUpload').item.json.Datei[0].mimetype }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2256,
+        2848
+      ],
+      "id": "c210f6ba-ff89-4df1-8f74-3a8a715a7949",
+      "name": "SetFileId"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "binaryPropertyName": "Datei",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        2032,
+        2848
+      ],
+      "id": "683bfb7d-5aff-45b4-b017-e90c19194003",
+      "name": "ExtractFromFile"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM flowerShop_doc_vectors\nWHERE metadata#>>'{file_id}'='{{$('SetFileId').item.json.file_id}}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2512,
+        2848
+      ],
+      "id": "a3347fa5-9a07-494d-aa64-8e50ef1cafa1",
+      "name": "DeleteExistItems",
+      "credentials": {
+        "postgres": {
+          "id": "UoqszLjcmzlEQ1H5",
+          "name": "PGVector"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const fullText = $('ExtractFromFile').first().json.text;\n\nconst blocks = fullText\n  .split('---')\n  .map(b => b.trim())\n  .filter(b => b.length > 0);\n\nreturn blocks.map(block => ({ json: { block } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        2848
+      ],
+      "id": "dbb6abcd-ef87-417f-9244-5e35218a769e",
+      "name": "SplitConfigBlocks"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst output = [];\n\nfor (const item of items) {\n  const block = item.json.block;\n\n  const get = (key) => {\n    const m = block.match(new RegExp(`^${key}:\\\\s*(.+)$`, 'm'));\n    return m ? m[1].trim() : '';\n  };\n\n  const name = get('name');\n  if (!name) continue;\n\n  const priceCategory = get('kategorie');\n  const price = parseFloat(get('preis')) || null;\n  const tags = get('tags').split(',').map(t => t.trim()).filter(Boolean);\n  const occasions = get('anlass').split(',').map(o => o.trim()).filter(Boolean);\n  const description = get('beschreibung');\n\n  // Artikel: \"B1018 Sonnenblume 3×; B1075 Tulpe Gelb 5×\"\n  const articles = get('artikel').split(';').map(a => {\n    const m = a.trim().match(/^(B\\d+)\\s+(.+?)\\s+(\\d+)×$/);\n    return m ? { articleId: m[1], productName: m[2].trim(), quantity: parseInt(m[3], 10) } : null;\n  }).filter(Boolean);\n\n  const articleIds = articles.map(a => a.articleId);\n  const articleSummary = articles.map(a => `${a.articleId} ${a.productName} (${a.quantity}×)`).join(', ');\n\n  const textForEmbedding = `Name: ${name}. Preiskategorie: ${priceCategory}. Beschreibung: ${description}. Tags: ${tags.join(', ')}. Anlass: ${occasions.join(', ')}. Artikel: ${articleSummary}. Preis: ${price} Euro.`;\n\n  output.push({\n    json: { name, priceCategory, description, price, articles, articleIds, tags, occasions, textForEmbedding },\n  });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        2848
+      ],
+      "id": "06b06c3b-107c-45c9-bdb0-766f8f1a745c",
+      "name": "ParseConfigBlocks"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": "flowerShop_doc_vectors",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        3392,
+        2848
+      ],
+      "id": "fa0b9fab-2e7a-40e6-85b7-fbb38e06ddd5",
+      "name": "PGVectorStore",
+      "credentials": {
+        "postgres": {
+          "id": "UoqszLjcmzlEQ1H5",
+          "name": "PGVector"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3264,
+        3216
+      ],
+      "id": "171ce8b6-2c83-4c29-872f-1bada1fb0dbb",
+      "name": "Embeddings",
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.textForEmbedding }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_id",
+                "value": "={{ $('SetFileId').first().json.file_id }}"
+              },
+              {
+                "name": "name",
+                "value": "={{ $json.name }}"
+              },
+              {
+                "name": "price",
+                "value": "={{ $json.price }}"
+              },
+              {
+                "name": "articles",
+                "value": "={{ $json.articles }}"
+              },
+              {
+                "name": "occasions",
+                "value": "={{ $json.occasions }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        3488,
+        3216
+      ],
+      "id": "76af360a-64e5-41db-82f9-b87ce50b5226",
+      "name": "DefaultDataLoader"
+    },
+    {
+      "parameters": {
+        "content": "- Typ: Form Trigger\n- Titel: \"FlowerShop – Datei zu Vector\"\n- Feld: \"Datei\" (Typ: file, Pflichtfeld)\n- Attribution: deaktiviert",
+        "height": 272,
+        "width": 296
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        2736
+      ],
+      "id": "8b264454-22d6-497f-adda-3fa01ee0ea67",
+      "name": "Note FormUpload"
+    },
+    {
+      "parameters": {
+        "content": "- Operation: Text extrahieren\n- Binary Property: \"Datei\"\n- Zielfeld: \"text\"",
+        "height": 280,
+        "width": 212,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1968,
+        2736
+      ],
+      "id": "085454a9-a055-46a8-90f4-71676cb7bbad",
+      "name": "Note ExtractFromFile"
+    },
+    {
+      "parameters": {
+        "content": "- Typ: Set Node\n- file_id ← FormUpload.Datei[0].filename\n- file_type ← FormUpload.Datei[0].mimetype",
+        "height": 328,
+        "width": 200,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2208,
+        2688
+      ],
+      "id": "6895d8a0-6a81-4187-b614-e2cdc7926945",
+      "name": "Note SetFileId"
+    },
+    {
+      "parameters": {
+        "content": "- Typ: Postgres (Query)\n- Credential: PGVector\n- SQL: DELETE FROM flowerShop_doc_vectors WHERE metadata file_id = aktueller Dateiname\n- Verhindert Duplikate bei erneutem Upload\n",
+        "height": 368,
+        "width": 348,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2448,
+        2656
+      ],
+      "id": "afb0adc1-3c40-43f8-9377-b7f529eed687",
+      "name": "Note DeleteExistItems"
+    },
+    {
+      "parameters": {
+        "content": "- Typ: Code (JavaScript)\n- Splittet den extrahierten Text an '---'\n- Gibt jeden Block als separates Item zurück\n",
+        "height": 328,
+        "width": 200
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2832,
+        2688
+      ],
+      "id": "a11aca6a-52ed-4cf3-9533-c822fe706153",
+      "name": "Note SplitConfigBlocks"
+    },
+    {
+      "parameters": {
+        "content": "- Typ: Code (JavaScript)\n- Parst Felder: name, kategorie, preis, tags, anlass, beschreibung, artikel\n- Extrahiert Artikel-IDs (B-Nummern)\n- Erstellt textForEmbedding als zusammengesetzten Text für die Vektorisierung\n",
+        "height": 368,
+        "width": 224,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3056,
+        2640
+      ],
+      "id": "0da1eb3c-3409-4ac9-8c33-3d315cdca13f",
+      "name": "Note ParseConfigBlocks"
+    },
+    {
+      "parameters": {
+        "content": "- Modus: Insert\n- Tabelle: flowerShop_doc_vectors\n- Credential: PGVector\n- Sub-Nodes: Embeddings + DefaultDataLoader",
+        "height": 348,
+        "width": 440
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3312,
+        2672
+      ],
+      "id": "5770341e-5098-403b-b18e-558f430d4914",
+      "name": "Note PGVectorStore"
+    },
+    {
+      "parameters": {
+        "content": "- Typ: OpenAI Embeddings\n- Credential: OpenAiISO\n- Standardmodell (text-embedding-ada-002)\n- Erzeugt Vektoren für PGVectorStore",
+        "height": 300,
+        "width": 232,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3200,
+        3040
+      ],
+      "id": "3656c094-c1a9-4790-af7c-08b20188f683",
+      "name": "Note Embeddings"
+    },
+    {
+      "parameters": {
+        "content": "- Datenquelle: Expression (textForEmbedding)\n- Text Splitting: Custom (via Character Text Splitter)\n- Metadata: file_id, name, price, articles, occasions",
+        "height": 300,
+        "width": 300,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3456,
+        3040
+      ],
+      "id": "5309af90-0712-4cb7-8e59-acad7b643116",
+      "name": "Note DefaultDataLoader"
+    },
+    {
+      "parameters": {
+        "content": "- Typ: Character Text Splitter\n- Standardeinstellungen\n- Splittet Dokumente für den DataLoader",
+        "height": 232,
+        "width": 296
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3456,
+        3360
+      ],
+      "id": "e0c13417-c027-4b02-b2c3-0ba6b60d6de7",
+      "name": "Note CharTextSplitter"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        3552,
+        3472
+      ],
+      "id": "388ae9f6-a181-4532-9cad-c7292f376755",
+      "name": "CharacterTextSplitter"
+    }
+  ],
+  "connections": {
+    "FormUpload": {
+      "main": [
+        [
+          {
+            "node": "ExtractFromFile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ExtractFromFile": {
+      "main": [
+        [
+          {
+            "node": "SetFileId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetFileId": {
+      "main": [
+        [
+          {
+            "node": "DeleteExistItems",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeleteExistItems": {
+      "main": [
+        [
+          {
+            "node": "SplitConfigBlocks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitConfigBlocks": {
+      "main": [
+        [
+          {
+            "node": "ParseConfigBlocks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ParseConfigBlocks": {
+      "main": [
+        [
+          {
+            "node": "PGVectorStore",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "PGVectorStore",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DefaultDataLoader": {
+      "ai_document": [
+        [
+          {
+            "node": "PGVectorStore",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CharacterTextSplitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "DefaultDataLoader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "9d6cd2f9-27d2-44e7-a570-dee35d531e70",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-22T12:39:43.745Z",
+      "createdAt": "2026-03-22T12:39:43.745Z",
+      "role": "workflow:owner",
+      "workflowId": "X4nHx3FOgR22YlQN",
+      "projectId": "NGVmW0kzxTFQBNsK"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

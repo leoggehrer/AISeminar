@@ -1,0 +1,164 @@
+{
+  "updatedAt": "2026-03-25T21:58:45.319Z",
+  "createdAt": "2026-03-25T21:47:51.022Z",
+  "id": "WUBlzoKHJ670yCY5",
+  "name": "SimpleNoteAgent",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "model": "gpt-4.1-mini",
+        "options": {
+          "maxTokens": 800,
+          "temperature": 0.7
+        }
+      },
+      "id": "cf848565-79fb-4262-8b54-65bc41fe0cd5",
+      "name": "ChatModel",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        768,
+        1024
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Du bist ein erfahrener Redakteur und Fachautor. Deine Aufgabe ist es, aus stichwortartigen Eingaben klare, ausführliche und gut strukturierte Beschreibungen auf Deutsch zu erstellen. Du antwortest AUSSCHLIESSLICH mit validem JSON - kein Erklaerungstext, keine Markdown-Backticks.\n\n# KATEGORIEN\n- technisch: Präzise, sachlich, fachlich fundiert\n- kreativ: Lebendig, bildhaft, inspirierend\n- geschaeftlich: Professionell, nutzenorientiert, formell\n- allgemein: Verständlich, ausgewogen, informativ\n\n# REGELN\n- Alle Stichwörter sinnvoll in die Beschreibung einbinden\n- Zusammenhänge zwischen den Stichwörtern herstellen\n- Fehlende Kontextinformationen logisch ergänzen\n- Sachlich korrekt bleiben, keine Erfindungen\n- Vermeide eine Anrede mit DU oder Hey"
+        }
+      },
+      "id": "ff7cc4a6-5d0f-4f0c-be94-90e59c85a536",
+      "name": "AIAgent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        768,
+        800
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        1024
+      ],
+      "id": "174feb40-8c6b-43ac-8ff7-8ced1c344e80",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        352,
+        800
+      ],
+      "id": "d854a224-b6ab-4408-96ad-1a5bab962c59",
+      "name": "Chat",
+      "webhookId": "357e68f5-5dd3-49a1-bccf-2dd56c20ee70"
+    },
+    {
+      "parameters": {
+        "jsCode": "let prompt = $input.first().json.chatInput;\nlet keywords = [];\nlet category = 'allgemein';\nreturn [{ json: { prompt, keywords, category } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        800
+      ],
+      "id": "6915cb01-4efe-4bfc-bf4c-69568f00837d",
+      "name": "PrepareInput"
+    }
+  ],
+  "connections": {
+    "ChatModel": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AIAgent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AIAgent": {
+      "main": [
+        []
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AIAgent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "PrepareInput",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepareInput": {
+      "main": [
+        [
+          {
+            "node": "AIAgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "355c6fb3-6ae9-4a17-b27a-3ba629409066",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-25T21:47:51.026Z",
+      "createdAt": "2026-03-25T21:47:51.026Z",
+      "role": "workflow:owner",
+      "workflowId": "WUBlzoKHJ670yCY5",
+      "projectId": "NGVmW0kzxTFQBNsK"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

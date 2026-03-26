@@ -1,31 +1,29 @@
-# Workflow: FlowerShopUploadToVector
+# Workflow: FlowerShopUploadToVectorSimple
 
 | Eigenschaft                 | Wert                 |
 | --------------------------- | -------------------- |
-| **ID**                | `xnqngMngsGqYktkQ` |
+| **ID**                | `X4nHx3FOgR22YlQN` |
 | **Status**            | Inaktiv              |
-| **Erstellt**          | 2026-03-19           |
-| **Zuletzt geändert** | 2026-03-19           |
+| **Erstellt**          | 2026-03-22           |
+| **Zuletzt geändert** | 2026-03-22           |
 
 ## Beschreibung
 
-Ermöglicht den Upload einer strukturierten Konfigurationsdatei (z. B. Blumensträuße mit Artikeln, Preisen, Tags) über ein Webformular. Die Datei wird geparst, in einzelne Produktblöcke aufgeteilt, vektorisiert (OpenAI Embeddings) und in eine PostgreSQL-Vektordatenbank (`flowerShop_doc_vectors`) geschrieben. Bereits vorhandene Einträge derselben Datei werden vor dem Import gelöscht, um Duplikate zu vermeiden.
+Vereinfachte Variante von `FlowerShopUploadToVector`. Ermöglicht den Upload einer strukturierten Konfigurationsdatei (z. B. Blumensträuße mit Artikeln, Preisen, Tags) über ein Webformular. Die Datei wird geparst, in einzelne Produktblöcke aufgeteilt, vektorisiert (OpenAI Embeddings) und in eine PostgreSQL-Vektordatenbank (`flowerShop_doc_vectors`) geschrieben. Im Unterschied zur komplexen Variante entfällt die Prüfung, ob die Zieltabelle existiert — der DELETE-Schritt wird immer ausgeführt.
 
 ---
 
 ## Flow-Übersicht
 
 ```
-FormUpload → ExtractFromFile → SetFileId → CheckTableExists → TableExists?
-                                                                  ├─ true  → DeleteExistItems → SplitConfigBlocks
-                                                                  └─ false → SplitConfigBlocks
-                                                                                    ↓
-                                                               ParseConfigBlocks → PGVectorStore
-                                                                                       ↑
-                                                                         Embeddings (ai_embedding)
-                                                                         DefaultDataLoader (ai_document)
-                                                                              ↑
-                                                                    Character Text Splitter (ai_textSplitter)
+FormUpload → ExtractFromFile → SetFileId → DeleteExistItems → SplitConfigBlocks
+                                                                       ↓
+                                                            ParseConfigBlocks → PGVectorStore
+                                                                                    ↑
+                                                                      Embeddings (ai_embedding)
+                                                                      DefaultDataLoader (ai_document)
+                                                                           ↑
+                                                               CharacterTextSplitter (ai_textSplitter)
 ```
 
 ---
@@ -39,10 +37,10 @@ FormUpload → ExtractFromFile → SetFileId → CheckTableExists → TableExist
 | **Name**           | `FormUpload`                                                                        |
 | **Type**           | `n8n-nodes-base.formTrigger`                                                        |
 | **Version**        | 2.3                                                                                   |
-| **Position**       | 2416, 2336                                                                            |
+| **Position**       | 1808, 2848                                                                            |
 | **Formular-Titel** | `FlowerShop – Datei zu Vector`                                                     |
 | **Beschreibung**   | Laden Sie eine Konfigurationsdatei hoch, um sie in den Vektorspeicher zu importieren. |
-| **Webhook-ID**     | `4a8a6093-488a-4e16-9e70-9a3bf89a6e68`                                              |
+| **Webhook-ID**     | `13579e96-f6e7-4493-bfdb-342531d872cd`                                              |
 
 **Formular-Felder:**
 
@@ -61,7 +59,7 @@ FormUpload → ExtractFromFile → SetFileId → CheckTableExists → TableExist
 | **Name**            | `ExtractFromFile`                |
 | **Type**            | `n8n-nodes-base.extractFromFile` |
 | **Version**         | 1.1                                |
-| **Position**        | 2624, 2336                         |
+| **Position**        | 2032, 2848                         |
 | **Operation**       | `text`                           |
 | **Binary Property** | `Datei`                          |
 | **Zielfeld**        | `text`                           |
@@ -77,7 +75,7 @@ FormUpload → ExtractFromFile → SetFileId → CheckTableExists → TableExist
 | **Name**     | `SetFileId`          |
 | **Type**     | `n8n-nodes-base.set` |
 | **Version**  | 3.4                    |
-| **Position** | 2832, 2336             |
+| **Position** | 2256, 2848             |
 
 **Zuweisungen:**
 
@@ -90,61 +88,14 @@ FormUpload → ExtractFromFile → SetFileId → CheckTableExists → TableExist
 
 ---
 
-### 4. CheckTableExists
-
-| Eigenschaft          | Wert                        |
-| -------------------- | --------------------------- |
-| **Name**       | `CheckTableExists`        |
-| **Type**       | `n8n-nodes-base.postgres` |
-| **Version**    | 2.6                         |
-| **Position**   | 3040, 2336                  |
-| **Operation**  | `executeQuery`            |
-| **Credential** | `PGVector`                |
-
-**SQL-Query:**
-
-```sql
-SELECT EXISTS (
-  SELECT 1 FROM information_schema.tables
-  WHERE table_schema = 'public'
-  AND table_name = 'flowershop_doc_vectors'
-) AS table_exists;
-```
-
-**Aufgabe:** Prüft, ob die Zieltabelle `flowershop_doc_vectors` bereits in der Datenbank existiert, bevor versucht wird, bestehende Einträge zu löschen.
-
----
-
-### 5. TableExists?
-
-| Eigenschaft        | Wert                  |
-| ------------------ | --------------------- |
-| **Name**     | `TableExists?`      |
-| **Type**     | `n8n-nodes-base.if` |
-| **Version**  | 2.2                   |
-| **Position** | 3232, 2336            |
-
-**Bedingung:**
-
-| Linker Wert                  | Operator      | Rechter Wert |
-| ---------------------------- | ------------- | ------------ |
-| `{{ $json.table_exists }}` | boolean: true | —           |
-
-**Routing:**
-
-- **True** → `DeleteExistItems` (Tabelle existiert → alte Einträge löschen)
-- **False** → `SplitConfigBlocks` (Tabelle existiert nicht → direkt weiter)
-
----
-
-### 6. DeleteExistItems
+### 4. DeleteExistItems
 
 | Eigenschaft          | Wert                        |
 | -------------------- | --------------------------- |
 | **Name**       | `DeleteExistItems`        |
 | **Type**       | `n8n-nodes-base.postgres` |
 | **Version**    | 2.6                         |
-| **Position**   | 3424, 2208                  |
+| **Position**   | 2512, 2848                  |
 | **Operation**  | `executeQuery`            |
 | **Credential** | `PGVector`                |
 
@@ -155,18 +106,18 @@ DELETE FROM flowerShop_doc_vectors
 WHERE metadata#>>'{file_id}'='{{$('SetFileId').item.json.file_id}}';
 ```
 
-**Aufgabe:** Löscht alle bestehenden Vektoren, die zur aktuellen Datei gehören (anhand der `file_id` in den Metadaten). Verhindert Duplikate bei erneutem Upload derselben Datei.
+**Aufgabe:** Löscht alle bestehenden Vektoren, die zur aktuellen Datei gehören (anhand der `file_id` in den Metadaten). Verhindert Duplikate bei erneutem Upload derselben Datei. Wird im Gegensatz zur komplexen Variante immer ausgeführt — ohne vorherige Tabellenexistenzprüfung.
 
 ---
 
-### 7. SplitConfigBlocks
+### 5. SplitConfigBlocks
 
 | Eigenschaft        | Wert                    |
 | ------------------ | ----------------------- |
 | **Name**     | `SplitConfigBlocks`   |
 | **Type**     | `n8n-nodes-base.code` |
 | **Version**  | 2                       |
-| **Position** | 3600, 2352              |
+| **Position** | 2880, 2848              |
 | **Sprache**  | JavaScript              |
 
 **Aufgabe:** Splittet den extrahierten Gesamttext anhand des Trennzeichens `---` in einzelne Konfigurationsblöcke. Jeder Block wird als separates Item zurückgegeben.
@@ -186,14 +137,14 @@ return blocks.map(block => ({ json: { block } }));
 
 ---
 
-### 8. ParseConfigBlocks
+### 6. ParseConfigBlocks
 
 | Eigenschaft        | Wert                    |
 | ------------------ | ----------------------- |
 | **Name**     | `ParseConfigBlocks`   |
 | **Type**     | `n8n-nodes-base.code` |
 | **Version**  | 2                       |
-| **Position** | 3792, 2352              |
+| **Position** | 3120, 2848              |
 | **Sprache**  | JavaScript              |
 
 **Aufgabe:** Parst jeden Konfigurationsblock und extrahiert die strukturierten Felder. Erstellt einen zusammengesetzten Text (`textForEmbedding`) für die Vektorisierung.
@@ -228,20 +179,12 @@ for (const item of items) {
   }).filter(Boolean);
 
   const articleIds = articles.map(a => a.articleId);
-  const articleSummary = articles
-    .map(a => `${a.articleId} ${a.productName} (${a.quantity}×)`)
-    .join(', ');
+  const articleSummary = articles.map(a => `${a.articleId} ${a.productName} (${a.quantity}×)`).join(', ');
 
-  const textForEmbedding = `Name: ${name}. Preiskategorie: ${priceCategory}. `
-    + `Beschreibung: ${description}. Tags: ${tags.join(', ')}. `
-    + `Anlass: ${occasions.join(', ')}. Artikel: ${articleSummary}. `
-    + `Preis: ${price} Euro.`;
+  const textForEmbedding = `Name: ${name}. Preiskategorie: ${priceCategory}. Beschreibung: ${description}. Tags: ${tags.join(', ')}. Anlass: ${occasions.join(', ')}. Artikel: ${articleSummary}. Preis: ${price} Euro.`;
 
   output.push({
-    json: {
-      name, priceCategory, description, price,
-      articles, articleIds, tags, occasions, textForEmbedding
-    },
+    json: { name, priceCategory, description, price, articles, articleIds, tags, occasions, textForEmbedding },
   });
 }
 
@@ -278,14 +221,14 @@ return output;
 
 ---
 
-### 9. PGVectorStore
+### 7. PGVectorStore
 
 | Eigenschaft          | Wert                                             |
 | -------------------- | ------------------------------------------------ |
 | **Name**       | `PGVectorStore`                                |
 | **Type**       | `@n8n/n8n-nodes-langchain.vectorStorePGVector` |
 | **Version**    | 1.3                                              |
-| **Position**   | 3984, 2352                                       |
+| **Position**   | 3392, 2848                                       |
 | **Modus**      | `insert`                                       |
 | **Tabelle**    | `flowerShop_doc_vectors`                       |
 | **Credential** | `PGVector`                                     |
@@ -297,14 +240,14 @@ return output;
 
 ---
 
-### 10. Embeddings
+### 8. Embeddings
 
 | Eigenschaft          | Wert                                          |
 | -------------------- | --------------------------------------------- |
 | **Name**       | `Embeddings`                                |
 | **Type**       | `@n8n/n8n-nodes-langchain.embeddingsOpenAi` |
 | **Version**    | 1.2                                           |
-| **Position**   | 3984, 2576                                    |
+| **Position**   | 3264, 3216                                    |
 | **Credential** | `OpenAiISO`                                 |
 | **Connection** | `ai_embedding` → PGVectorStore             |
 
@@ -312,17 +255,17 @@ return output;
 
 ---
 
-### 11. DefaultDataLoader
+### 9. DefaultDataLoader
 
 | Eigenschaft              | Wert                                                   |
 | ------------------------ | ------------------------------------------------------ |
 | **Name**           | `DefaultDataLoader`                                  |
 | **Type**           | `@n8n/n8n-nodes-langchain.documentDefaultDataLoader` |
 | **Version**        | 1.1                                                    |
-| **Position**       | 4096, 2576                                             |
+| **Position**       | 3488, 3216                                             |
 | **JSON-Modus**     | `expressionData`                                     |
 | **Datenquelle**    | `{{ $json.textForEmbedding }}`                       |
-| **Text Splitting** | Custom (via Character Text Splitter)                   |
+| **Text Splitting** | Custom (via CharacterTextSplitter)                     |
 | **Connection**     | `ai_document` → PGVectorStore                       |
 
 **Metadaten:**
@@ -337,14 +280,14 @@ return output;
 
 ---
 
-### 12. Character Text Splitter
+### 10. CharacterTextSplitter
 
 | Eigenschaft          | Wert                                                           |
 | -------------------- | -------------------------------------------------------------- |
-| **Name**       | `Character Text Splitter`                                    |
+| **Name**       | `CharacterTextSplitter`                                      |
 | **Type**       | `@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter` |
 | **Version**    | 1                                                              |
-| **Position**   | 4096, 2784                                                     |
+| **Position**   | 3552, 3472                                                     |
 | **Connection** | `ai_textSplitter` → DefaultDataLoader                       |
 
 **Aufgabe:** Splittet die Dokument-Texte für den DefaultDataLoader.
@@ -360,20 +303,17 @@ return output;
 
 ## Verbindungen (Connections)
 
-| Von                     | Nach              | Connection-Typ  |
-| ----------------------- | ----------------- | --------------- |
-| FormUpload              | ExtractFromFile   | main            |
-| ExtractFromFile         | SetFileId         | main            |
-| SetFileId               | CheckTableExists  | main            |
-| CheckTableExists        | TableExists?      | main            |
-| TableExists? (true)     | DeleteExistItems  | main            |
-| TableExists? (false)    | SplitConfigBlocks | main            |
-| DeleteExistItems        | SplitConfigBlocks | main            |
-| SplitConfigBlocks       | ParseConfigBlocks | main            |
-| ParseConfigBlocks       | PGVectorStore     | main            |
-| Embeddings              | PGVectorStore     | ai_embedding    |
-| DefaultDataLoader       | PGVectorStore     | ai_document     |
-| Character Text Splitter | DefaultDataLoader | ai_textSplitter |
+| Von                   | Nach              | Connection-Typ  |
+| --------------------- | ----------------- | --------------- |
+| FormUpload            | ExtractFromFile   | main            |
+| ExtractFromFile       | SetFileId         | main            |
+| SetFileId             | DeleteExistItems  | main            |
+| DeleteExistItems      | SplitConfigBlocks | main            |
+| SplitConfigBlocks     | ParseConfigBlocks | main            |
+| ParseConfigBlocks     | PGVectorStore     | main            |
+| Embeddings            | PGVectorStore     | ai_embedding    |
+| DefaultDataLoader     | PGVectorStore     | ai_document     |
+| CharacterTextSplitter | DefaultDataLoader | ai_textSplitter |
 
 ---
 
@@ -383,3 +323,15 @@ return output;
 | ------------------------- | -------- |
 | **Execution Order** | v1       |
 | **Binary Mode**     | separate |
+| **Available in MCP**| false    |
+
+---
+
+## Unterschiede zu FlowerShopUploadToVector
+
+| Aspekt                      | FlowerShopUploadToVector          | FlowerShopUploadToVectorSimple     |
+| --------------------------- | --------------------------------- | ---------------------------------- |
+| Tabellenprüfung             | `CheckTableExists` + `TableExists?` IF-Node | Nicht vorhanden              |
+| DELETE-Ausführung           | Nur wenn Tabelle existiert        | Immer                              |
+| Anzahl Nodes (Verarbeitung) | 12                                | 10                                 |
+| Flow-Typ                    | Bedingt (branch)                  | Linear                             |

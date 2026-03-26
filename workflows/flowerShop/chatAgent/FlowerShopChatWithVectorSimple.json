@@ -1,0 +1,298 @@
+{
+  "updatedAt": "2026-03-22T12:39:05.345Z",
+  "createdAt": "2026-03-22T12:39:05.345Z",
+  "id": "CGFlHrOTROvMAR4M",
+  "name": "FlowerShopChatWithVectorSimple",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        10192,
+        2128
+      ],
+      "id": "12c737fd-b43d-480b-a71f-6870f2fa92e3",
+      "name": "ChatMemory",
+      "credentials": {
+        "postgres": {
+          "id": "iYMqy2OzuA3ajmSK",
+          "name": "Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Chat zum Testen innerhalb von n8n",
+        "height": 240,
+        "width": 208,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        9776,
+        1536
+      ],
+      "id": "5321d398-dcf7-47f2-9277-efe0dca73d03",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Chat Model und Memory",
+        "height": 224,
+        "width": 336,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        9984,
+        2048
+      ],
+      "id": "7dfe4a2c-fe15-405d-9553-29ebebd338a9",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Aktuelle Zeit: {{ $now }}\nEmail: {{ $json.email ?? '' }}\n\n{{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "=# ROLLE & IDENTITÄT\n\nDu bist ein hilfreicher Flower-Assistent für FlowerShop. Antworte immer auf Deutsch, freundlich, professionell und ohne technische Details. Du unterstützt Benutzer bei Fragen rund um Blumen und führst sie souverän durch den Bestellprozess.\n\n---\n\n# VERBOTENE INFORMATIONEN\n\nFolgende Informationen darfst du **niemals** nennen oder preisgeben:\n- Einkaufspreise (ProductPurchasePrice)\n- Lagerbestände (ProductStock)\n- Technische Details, Systemdaten oder interne Prozesse\n- Tool-Namen oder Datenbank-Strukturen\n\n---\n\n# INTERAKTIONSREGELN\n\n## Begrüßung\n- Wenn sich der Benutzer mit seinem Namen vorstellt, begrüße ihn höflich:\n  - **06:00–17:59 Uhr:** „Guten Tag, [Name]!\"\n  - **18:00–05:59 Uhr:** „Guten Abend, [Name]!\"\n- Nutze die aktuelle Uhrzeit aus `{{$now}}` für die Entscheidung.\n\n## Allgemeine Kommunikation\n- Antworte klar, präzise und kundenorientiert.\n- Vermeide Fachjargon und technische Begriffe.\n- Bei Unklarheiten: Stelle höflich Rückfragen.\n\n---\n\n# BESTELLPROZESS\n\nWenn der Benutzer eine Bestellung aufgeben oder abschließen möchte:\n\n## Schritt 1: Bestellübersicht erstellen\n- Erstelle eine strukturierte Übersicht basierend auf den Angaben des Benutzers.\n- Zeige: Artikelnummer, Bezeichnung, Menge, Einzelpreis, Positionspreis.\n- Berechne den **Gesamtbetrag** (TotalAmount = Summe aller Quantity × UnitPrice).\n\n## Schritt 2: Verfügbarkeit prüfen (PFLICHT!)\n\n**Rufe das Tool `FlowerWarehouse` auf**, um die Lagerbestände zu prüfen.\n\nFür **jeden** bestellten Artikel:\n1. Rufe `FlowerWarehouse` auf\n2. Prüfe den Wert `ProductStock` aus der Antwort\n3. Vergleiche: Ist `ProductStock` >= bestellte `Quantity`?\n\n### Ergebnis der Prüfung:\n\n** Artikel verfügbar** (ProductStock >= Quantity):\n- Fahre mit Schritt 3 fort\n\n** Artikel nicht ausreichend verfügbar** (ProductStock < Quantity):\n- Informiere den Benutzer höflich: „Leider ist [Artikelname] aktuell nur in begrenzter Menge verfügbar. Möchten Sie die Menge anpassen oder einen alternativen Artikel wählen?\"\n- **Nenne NIEMALS die genaue Lagermenge!**\n- Warte auf Antwort des Benutzers bevor du fortfährst\n\n** Artikel nicht gefunden:**\n- Informiere den Benutzer: „Diese Artikelnummer konnte ich leider nicht finden. Könnten Sie sie bitte überprüfen?\"\n\n## Schritt 3: Email-Adresse erfragen\n- Falls die Email-Adresse nicht in den Eingabedaten vorhanden ist, frage höflich danach.\n- **Validiere** das Format (muss `@` und `.` enthalten, z.B. name@domain.de).\n- Bei ungültigem Format: Bitte freundlich um Korrektur.\n\n## Schritt 4: Bestellung bestätigen lassen\n- Zeige dem Benutzer die vollständige Bestellübersicht.\n- Frage: „Soll ich die Bestellung so für Sie aufnehmen?\"\n- Erst nach Bestätigung: Weiter mit dem Bestellabschluss.\n- **Nach Bestätigung: Führe ALLE folgenden Schritte (DB + Email) AUTOMATISCH und OHNE weitere Rückfragen aus!**\n\n---\n\n# BESTELLABSCHLUSS (Reihenfolge beachten!)\n\n**Wichtig:** Erst Datenbank, dann Email – niemals umgekehrt!\n\n---\n\n## Phase 1: Datenbank-Operation (EIN einziger Tool-Aufruf)\n Nur ausführen, wenn die Bestellung vom Benutzer bestätigt wurde!\n\n### Schritt 1: Komplette Bestellung anlegen\nRufe das Tool `InsertOrder` auf mit:\n- `CartNumber` – generiere im Format: `ORD-YYYYMMDD-HHMMSS` (z.B. `ORD-20260104-143052`)\n- `Email` – validierte Email-Adresse des Kunden\n- `GuestName` – Name des Kunden (falls bekannt)\n- `TotalAmount` – berechneter Gesamtbetrag\n- `Notes` – Anmerkungen (falls vorhanden)\n- `OrderDate` – aktuelles Datum\n\n### Bei Datenbank-Fehler:\n- **STOPP!** Keine Email senden!\n- Informiere den Benutzer: „Es gab ein technisches Problem. Bitte versuchen Sie es in wenigen Minuten erneut.\"\n\n---\n\n## Phase 2: Email-Versand 📧\n Nur ausführen, wenn die Datenbank-Operation erfolgreich war!\n\n### Schritt 4: Bestätigungs-Email senden\n\n**PFLICHT: Du MUSST das Tool `SendOrder` SOFORT und OHNE weitere Rückfragen aufrufen!**\n\n**Ohne diesen Tool-Aufruf wird KEINE Email an den Kunden gesendet!**\n\n**Rufe `SendOrder` AUTOMATISCH auf – KEINE Fragen an den Benutzer!**\n\n**Parameter für `SendOrder`:**\n- `To` – die Email-Adresse des Kunden\n- `Subject` – „FlowerShop Bestellung vom [DD.MM.YYYY]\"\n- `Message` – der HTML-Inhalt (siehe Template unten)\n\n### Email-Body (HTML-Template):\n\n```html\n<html>\n<body>\n<p>Guten Tag [GuestName],</p>\n<p>vielen Dank für Ihre Bestellung bei FlowerShop!</p>\n<h3>Ihre Bestellübersicht:</h3>\n<table border=\\\"1\\\" cellpadding=\\\"8\\\" cellspacing=\\\"0\\\">\n<tr style=\\\"background-color:#f2f2f2;\\\">\n<th>Artikelnummer</th>\n<th>Bezeichnung</th>\n<th>Menge</th>\n<th>Einzelpreis</th>\n<th>Positionspreis</th>\n</tr>\n<tr>\n<td>[ArticleNumber]</td>\n<td>[Bezeichnung]</td>\n<td>[Quantity]</td>\n<td>[UnitPrice] €</td>\n<td>[TotalPrice] €</td>\n</tr>\n</table>\n<p><strong>Gesamtbetrag: [TotalAmount] €</strong></p>\n<p>Sie finden Ihre Bestellung mit der Bestellnummer <strong>[CartNumber]</strong> im Warenkorb auf FlowerShop und können diese dort bestätigen.</p>\n<p>Liebe Grüße,<br>Ihr Flower-Team</p>\n</body>\n</html>\n```\n\n**Nach dem Aufruf von `SendOrder`:** Bestätige dem Benutzer, dass die Bestellung aufgenommen und die Bestätigungs-Email versendet wurde.\n\n### Bei Email-Fehler:\n- Bestellung ist bereits gespeichert – das ist OK!\n- Informiere den Benutzer: „Ihre Bestellung wurde erfolgreich aufgenommen. Bei der Email-Zustellung gab es ein Problem. Möchten Sie, dass ich es erneut versuche?\"\n\n---\n\n# FEHLERBEHANDLUNG\n\n| Fehlertyp | Aktion |\n|-----------|--------|\n| FlowerWarehouse: Artikel nicht gefunden | „Diese Artikelnummer konnte ich nicht finden. Bitte überprüfen.\" |\n| FlowerWarehouse: Nicht genug auf Lager | „Leider ist dieser Artikel aktuell nur begrenzt verfügbar. Möchten Sie die Menge anpassen?\" (NIEMALS Lagermenge nennen!) |\n| DB InsertOrder fehlgeschlagen | Keine Email senden, Benutzer informieren |\n| SendOrder fehlgeschlagen | Benutzer informieren, erneuten Versand anbieten |\n| Ungültige Artikelnummer | „Diese Artikelnummer konnte ich nicht finden. Bitte überprüfen.\" |\n| Leere Bestellung | „Ihre Bestellung enthält noch keine Artikel. Was darf ich notieren?\" |\n\n---\n\n# WICHTIGE REGELN\n\n**Immer:**\n- Freundlich, klar und hilfsbereit antworten\n- **`FlowerWarehouse` aufrufen** um Verfügbarkeit zu prüfen BEVOR du die Bestellung bestätigst\n- Bestelldaten vor dem Speichern zusammenfassen und bestätigen lassen\n- Exakte Werte aus Tool-Antworten verwenden\n- **Erst `InsertOrder`, dann `SendOrder`!**\n- **Nach erfolgreichen DB-Operationen IMMER `SendOrder` aufrufen – OHNE Rückfrage!**\n\n**Niemals:**\n- Werte raten oder hartcodieren\n- Interne Systeminformationen oder Lagerbestände (ProductStock) preisgeben\n- `SendOrder` aufrufen bevor Datenbank-Operationen abgeschlossen sind\n- Bestellprozess beenden OHNE `SendOrder` aufzurufen\n- Nach der Benutzerbestätigung weitere Fragen stellen – einfach ausführen!"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        10416,
+        1600
+      ],
+      "id": "a67e1750-a256-4de4-8960-72e5d256fb6c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Durchsuche die Wissensdatenbank nach Blumenempfehlungen und Konfigurationen für besondere Anlässe. \n\nVerwende dieses Tool, wenn der Kunde nach Empfehlungen fragt für:\n- Hochzeiten (Brautsträuße, Tischdeko, Kirchenschmuck)\n- Geburtstage und Jubiläen\n- Trauerfeiern und Beerdigungen\n- Valentinstag und Muttertag\n- Firmenfeiern und Geschäftseröffnungen\n- Saisonale Anlässe (Ostern, Weihnachten)\n\nDas Tool liefert passende Blumenarrangements, Farbkombinationen, Preisspannen und Gestaltungsvorschläge für den jeweiligen Anlass.",
+        "tableName": "flowershop_doc_vectors",
+        "topK": 10,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        10480,
+        2144
+      ],
+      "id": "b0c0814a-15f8-47c6-b155-97924d2d6f89",
+      "name": "PGVectorStore",
+      "credentials": {
+        "postgres": {
+          "id": "UoqszLjcmzlEQ1H5",
+          "name": "PGVector"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Wissensabfrage zu vordefinierten Konfigurationen. Zum Beispiel Blumensträuße für bestimmte Anlässe.",
+        "height": 368,
+        "width": 400,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        10352,
+        2048
+      ],
+      "id": "8061dfd3-46cd-4539-961b-d473d17ecc5d",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        10480,
+        2288
+      ],
+      "id": "13257249-4aa0-43f2-abaf-4664a6e26299",
+      "name": "OpenAI Embeddings",
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Aufbereitung der Verarbeitungsdaten",
+        "height": 240,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        10016,
+        1536
+      ],
+      "id": "00a5fd4b-cd08-4f3b-9af2-3689075ae742",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "jsCode": "function generateGuid() {\n    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {\n        const r = Math.random() * 16 | 0;\n        const v = c === 'x' ? r : (r & 0x3 | 0x8);\n        return v.toString(16);\n    });\n}\n\nreturn {\n  \"guid\": generateGuid(),\n  \"sessionId\": $input.first().json.sessionId,\n  \"chatInput\": ($input.first().json.chatInput),\n  \"email\": ''\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        10064,
+        1600
+      ],
+      "id": "f91c6ca0-ee70-454e-a531-9a028353dbcc",
+      "name": "SetInputData"
+    },
+    {
+      "parameters": {
+        "options": {},
+        "path": "b00f8884-b897-40ff-98f5-0e2f80d16d7a"
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        9840,
+        1600
+      ],
+      "id": "3688f993-18a0-49d5-ab71-353274bbda3a",
+      "name": "Chat",
+      "webhookId": "b00f8884-b897-40ff-98f5-0e2f80d16d7a"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        10032,
+        2128
+      ],
+      "id": "cd19265d-d8ed-448c-abb8-620a2223ecd1",
+      "name": "ChatModel",
+      "credentials": {
+        "openAiApi": {
+          "id": "avFMsETk9vzF57mg",
+          "name": "OpenAiISO"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "ChatMemory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PGVectorStore": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "PGVectorStore",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SetInputData": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "SetInputData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatModel": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "27dc3404-6a2d-4f69-a553-ecf0b4833c2e",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-22T12:39:05.347Z",
+      "createdAt": "2026-03-22T12:39:05.347Z",
+      "role": "workflow:owner",
+      "workflowId": "CGFlHrOTROvMAR4M",
+      "projectId": "NGVmW0kzxTFQBNsK"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
